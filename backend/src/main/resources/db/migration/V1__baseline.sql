@@ -1,0 +1,4 @@
+DO $$
+BEGIN
+  NULL;
+END $$;
