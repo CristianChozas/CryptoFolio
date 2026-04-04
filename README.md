@@ -1,6 +1,14 @@
 # CryptoFolio
 
-Portfolio project built to demonstrate `Java + Spring Boot + React + TypeScript` skills using a Clean Architecture approach.
+Portfolio project built to demonstrate `Java + Spring Boot + JUnit` skills using a Clean Architecture approach.
+
+## Official Roadmap
+
+The source of truth for scope and ticket order is:
+
+- `documents/CryptoFolio_Roadmap.pdf`
+
+Current focus is backend-only. Frontend work is intentionally out of scope until backend roadmap phases are complete.
 
 ## Backend Architecture
 
@@ -50,7 +58,7 @@ backend/src/main/java/com/cryptofolio/backend
 Contains the business model and business rules.
 
 - `domain/model`: entities and aggregates such as `User` or `Transaction`
-- `domain/valueobject`: immutable concepts with validation such as `Email`, `Money`, or `AssetSymbol`
+- `domain/valueobject`: immutable concepts with validation such as `Money`, `Crypto`, or `TransactionType`
 - `domain/service`: domain logic that does not naturally belong inside a single entity or value object
 - `domain/exception`: domain-specific errors
 
@@ -143,7 +151,7 @@ In practice:
 Use names that reveal responsibility and layer.
 
 - entities: `User`, `Transaction`
-- value objects: `Email`, `Money`, `AssetSymbol`
+- value objects: `Money`, `Crypto`, `TransactionType`
 - domain services: `PortfolioCalculator`
 - use cases: `RegisterUserUseCase`, `LoginUserUseCase`
 - input ports: `RegisterUserInputPort`
@@ -167,7 +175,9 @@ Naming rules:
 Examples of where classes should live:
 
 - `User` -> `domain/model`
-- `Email` -> `domain/valueobject`
+- `Money` -> `domain/valueobject`
+- `Crypto` -> `domain/valueobject`
+- `TransactionType` -> `domain/valueobject`
 - `RegisterUserUseCase` -> `application/usecase`
 - `UserRepository` -> `application/port/out`
 - `RegisterUserCommand` -> `application/dto`
@@ -203,3 +213,27 @@ How schema creation works:
 3. Start the backend
 4. Flyway runs pending migrations automatically on startup
 5. Future tables must be introduced through new files such as `V2__create_users_table.sql`
+
+## Local Setup
+
+Run from repository root:
+
+```bash
+docker compose up -d
+```
+
+Run backend tests:
+
+```bash
+cd backend
+./mvnw test
+```
+
+## Testing Protocol
+
+Testing style follows "just enough":
+
+- cover all business behavior (valid, invalid, key edge cases)
+- avoid brittle/noisy assertions tied to implementation details
+- prefer `@ParameterizedTest` for repeated inputs
+- keep tests minimal, clear, and maintainable

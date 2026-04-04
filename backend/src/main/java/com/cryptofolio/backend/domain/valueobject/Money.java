@@ -15,11 +15,28 @@ public final class Money {
     }
 
     public static Money of(BigDecimal rawAmount, String rawCurrency) {
-        BigDecimal normalizedAmount = requireNonNull(rawAmount, "amount");
+        BigDecimal normalizedAmount = normalizeAmount(rawAmount);
         if (normalizedAmount.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("amount cannot be negative");
         }
 
+        String normalizedCurrency = normalizeCurrency(rawCurrency);
+        return new Money(normalizedAmount, normalizedCurrency);
+    }
+
+    public static Money signed(BigDecimal rawAmount, String rawCurrency) {
+        BigDecimal normalizedAmount = normalizeAmount(rawAmount);
+        String normalizedCurrency = normalizeCurrency(rawCurrency);
+
+        return new Money(normalizedAmount, normalizedCurrency);
+    }
+
+    private static BigDecimal normalizeAmount(BigDecimal rawAmount) {
+        BigDecimal normalizedAmount = requireNonNull(rawAmount, "amount");
+        return normalizedAmount.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static String normalizeCurrency(String rawCurrency) {
         String normalizedCurrency = normalizeField(rawCurrency);
         requireNonNull(normalizedCurrency, "currency");
 
@@ -27,7 +44,7 @@ public final class Money {
             throw new IllegalArgumentException("currency must be a 3-letter ISO code");
         }
 
-        return new Money(normalizedAmount.setScale(2, RoundingMode.HALF_UP), normalizedCurrency);
+        return normalizedCurrency;
     }
 
     public BigDecimal getAmount() {

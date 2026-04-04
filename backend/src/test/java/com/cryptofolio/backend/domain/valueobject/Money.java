@@ -39,6 +39,14 @@ class MoneyTest {
     }
 
     @Test
+    void shouldAllowNegativeAmountWhenUsingSignedFactory() {
+        Money money = Money.signed(new BigDecimal("-1.50"), "usd");
+
+        assertEquals(new BigDecimal("-1.50"), money.getAmount());
+        assertEquals("USD", money.getCurrency());
+    }
+
+    @Test
     void shouldRejectNullCurrency() {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
