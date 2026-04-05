@@ -24,3 +24,10 @@ target/
 
 # Java temporary files
 *.class
+
+# Local documents
+documents/
+
+# Agents 
+.agents/
+AGENTS.md
