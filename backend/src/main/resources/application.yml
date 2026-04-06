@@ -44,6 +44,10 @@ logging:
     com.cryptofolio: DEBUG
     org.springframework.security: INFO
 
+jwt:
+  secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
 ---
 spring:
   config:
@@ -66,6 +70,10 @@ logging:
   level:
     root: WARN
     com.cryptofolio: INFO
+
+jwt:
+  secret: 0123456789abcdef0123456789abcdef
+  expiration-ms: 86400000
 
 ---
 spring:
@@ -91,3 +99,7 @@ logging:
   level:
     com.cryptofolio: INFO
     org.springframework: INFO
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
