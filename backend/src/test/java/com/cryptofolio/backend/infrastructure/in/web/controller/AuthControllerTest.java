@@ -128,7 +128,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/register"))
-                .andExpect(jsonPath("$.errors.username").value("username cannot be blank"))
+                .andExpect(jsonPath("$.errors.username").value("username must be between 3 and 50 characters"))
                 .andExpect(jsonPath("$.errors.email").value("email must be a valid email address"))
                 .andExpect(jsonPath("$.errors.password").value("password must be between 8 and 100 characters"));
     }

@@ -2,6 +2,7 @@ package com.cryptofolio.backend.infrastructure.external;
 
 import com.cryptofolio.backend.application.port.out.CryptoPriceProvider;
 import com.cryptofolio.backend.domain.valueobject.Crypto;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class CoinGeckoPriceProvider implements CryptoPriceProvider {
     private final RestTemplate restTemplate;
     private final String baseUrl;
 
+    @Autowired
     public CoinGeckoPriceProvider(
             RestTemplateBuilder restTemplateBuilder,
             @Value("${coingecko.base-url:https://api.coingecko.com/api/v3}") String baseUrl) {
