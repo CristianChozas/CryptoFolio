@@ -9,14 +9,11 @@ import com.cryptofolio.backend.application.port.in.GetPortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioSummaryInputPort;
 import com.cryptofolio.backend.application.port.in.ListUserPortfoliosInputPort;
 import com.cryptofolio.backend.application.port.in.UpdatePortfolioInputPort;
-import com.cryptofolio.backend.domain.exception.PortfolioNotFoundException;
-import com.cryptofolio.backend.domain.exception.UnauthorizedPortfolioAccessException;
 import com.cryptofolio.backend.infrastructure.security.AuthenticatedUserResolver;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/portfolios")
@@ -97,15 +93,5 @@ public class PortfolioController {
     public ResponseEntity<PortfolioSummaryResponse> summary(@PathVariable Long portfolioId, Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         return ResponseEntity.ok(getPortfolioSummaryInputPort.execute(userId, portfolioId));
-    }
-
-    @ExceptionHandler(PortfolioNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handlePortfolioNotFound(PortfolioNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
-    }
-
-    @ExceptionHandler(UnauthorizedPortfolioAccessException.class)
-    public ResponseEntity<Map<String, String>> handleUnauthorizedPortfolio(UnauthorizedPortfolioAccessException exception) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", exception.getMessage()));
     }
 }

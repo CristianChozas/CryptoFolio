@@ -9,6 +9,7 @@ import com.cryptofolio.backend.application.port.in.GetPortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioSummaryInputPort;
 import com.cryptofolio.backend.application.port.in.ListUserPortfoliosInputPort;
 import com.cryptofolio.backend.application.port.in.UpdatePortfolioInputPort;
+import com.cryptofolio.backend.domain.exception.PortfolioNotFoundException;
 import com.cryptofolio.backend.infrastructure.security.AuthenticatedUserResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,5 +155,16 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.portfolio.id").value(10))
                 .andExpect(jsonPath("$.balance.BTC").value(0.50000000))
                 .andExpect(jsonPath("$.profitLossCurrency").value("USD"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenPortfolioDoesNotExist() throws Exception {
+        when(authenticatedUserResolver.resolveUserId(any())).thenReturn(1L);
+        when(getPortfolioInputPort.execute(1L, 999L)).thenThrow(new PortfolioNotFoundException(999L));
+
+        mockMvc.perform(get("/api/v1/portfolios/999").principal(PRINCIPAL))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.path").value("/api/v1/portfolios/999"));
     }
 }

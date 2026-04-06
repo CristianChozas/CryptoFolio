@@ -72,7 +72,9 @@ class AuthControllerTest {
                                 }
                                 """))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("User already exists with email: cristian@example.com"));
+                .andExpect(jsonPath("$.message").value("User already exists with email: cristian@example.com"))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/register"));
     }
 
     @Test
@@ -106,7 +108,9 @@ class AuthControllerTest {
                                 }
                                 """))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("Invalid credentials"));
+                .andExpect(jsonPath("$.message").value("Invalid credentials"))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/login"));
     }
 
     @Test

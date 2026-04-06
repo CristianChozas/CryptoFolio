@@ -5,16 +5,11 @@ import com.cryptofolio.backend.application.dto.response.TransactionResponse;
 import com.cryptofolio.backend.application.port.in.AddTransactionInputPort;
 import com.cryptofolio.backend.application.port.in.DeleteTransactionInputPort;
 import com.cryptofolio.backend.application.port.in.GetTransactionHistoryInputPort;
-import com.cryptofolio.backend.domain.exception.InsufficientFundsException;
-import com.cryptofolio.backend.domain.exception.PortfolioNotFoundException;
-import com.cryptofolio.backend.domain.exception.TransactionNotFoundException;
-import com.cryptofolio.backend.domain.exception.UnauthorizedPortfolioAccessException;
 import com.cryptofolio.backend.infrastructure.security.AuthenticatedUserResolver;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping
@@ -64,25 +58,5 @@ public class TransactionController {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         deleteTransactionInputPort.execute(userId, transactionId);
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler(PortfolioNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handlePortfolioNotFound(PortfolioNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
-    }
-
-    @ExceptionHandler(TransactionNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleTransactionNotFound(TransactionNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
-    }
-
-    @ExceptionHandler(UnauthorizedPortfolioAccessException.class)
-    public ResponseEntity<Map<String, String>> handleUnauthorizedPortfolio(UnauthorizedPortfolioAccessException exception) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", exception.getMessage()));
-    }
-
-    @ExceptionHandler(InsufficientFundsException.class)
-    public ResponseEntity<Map<String, String>> handleInsufficientFunds(InsufficientFundsException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
     }
 }
