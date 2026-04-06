@@ -1,4 +1,1 @@
-DO $$
-BEGIN
-  NULL;
-END $$;
+SELECT 1;

@@ -7,6 +7,8 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -30,7 +32,7 @@ class RequestDtoValidationTest {
     }
 
     @Test
-    void shouldAcceptValidRegisterUserRequest() {
+    void givenValidRegisterUserRequest_whenValidating_thenNoViolations() {
         RegisterUserRequest request = new RegisterUserRequest("cristian", "cristian@example.com", "password123");
 
         Set<ConstraintViolation<RegisterUserRequest>> violations = validator.validate(request);
@@ -38,8 +40,20 @@ class RequestDtoValidationTest {
         assertThat(violations).isEmpty();
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid", "plainaddress"})
+    void givenRegisterUserRequestWithInvalidEmail_whenValidating_thenRejectsEmail(String email) {
+        RegisterUserRequest request = new RegisterUserRequest("cristian", email, "password123");
+
+        Set<ConstraintViolation<RegisterUserRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("email");
+    }
+
     @Test
-    void shouldRejectBlankLoginPassword() {
+    void givenLoginRequestWithBlankPassword_whenValidating_thenRejectsPassword() {
         LoginRequest request = new LoginRequest("cristian@example.com", " ");
 
         Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
@@ -50,7 +64,7 @@ class RequestDtoValidationTest {
     }
 
     @Test
-    void shouldRejectBlankPortfolioName() {
+    void givenPortfolioRequestWithBlankName_whenValidating_thenRejectsName() {
         CreatePortfolioRequest request = new CreatePortfolioRequest("", "Long-term holdings");
 
         Set<ConstraintViolation<CreatePortfolioRequest>> violations = validator.validate(request);
@@ -61,11 +75,27 @@ class RequestDtoValidationTest {
     }
 
     @Test
-    void shouldRejectInvalidTransactionFields() {
+    void givenTransactionRequestWithLowercaseCrypto_whenValidating_thenRejectsCryptoFormat() {
+        AddTransactionRequest request = new AddTransactionRequest(
+                1L,
+                "btc",
+                "BUY",
+                new BigDecimal("0.10"),
+                new BigDecimal("65000.00"));
+
+        Set<ConstraintViolation<AddTransactionRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .containsExactly("crypto");
+    }
+
+    @Test
+    void givenTransactionRequestWithNonPositiveNumbers_whenValidating_thenRejectsNumericFields() {
         AddTransactionRequest request = new AddTransactionRequest(
                 0L,
-                "btc",
-                "hold",
+                "BTC",
+                "BUY",
                 BigDecimal.ZERO,
                 new BigDecimal("-1.00"));
 
@@ -73,6 +103,6 @@ class RequestDtoValidationTest {
 
         assertThat(violations)
                 .extracting(violation -> violation.getPropertyPath().toString())
-                .containsExactlyInAnyOrder("portfolioId", "crypto", "type", "amount", "pricePerUnit");
+                .containsExactlyInAnyOrder("portfolioId", "amount", "pricePerUnit");
     }
 }
