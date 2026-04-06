@@ -48,7 +48,7 @@ class AddTransactionUseCaseTest {
             FIXED_CLOCK);
 
     @Test
-    void shouldAddBuyTransactionForPortfolioOwner() {
+    void givenOwnedPortfolioAndBuyRequest_whenExecuting_thenSavesTransactionWithoutCheckingBalance() {
         Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
                 Instant.parse("2026-04-05T17:00:00Z"));
         AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "BUY",
@@ -68,7 +68,30 @@ class AddTransactionUseCaseTest {
     }
 
     @Test
-    void shouldRejectSellWhenBalanceIsInsufficient() {
+    void givenOwnedPortfolioAndSufficientBalance_whenExecutingSell_thenSavesTransaction() {
+        Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
+                Instant.parse("2026-04-05T17:00:00Z"));
+        AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "SELL",
+                new BigDecimal("0.10000000"), new BigDecimal("70000.00"));
+        Transaction existingBuy = new Transaction(10L, 15L, "BTC", TransactionType.BUY,
+                new BigDecimal("0.25000000"), new BigDecimal("65000.00"), Instant.parse("2026-04-05T17:30:00Z"));
+        Transaction savedTransaction = new Transaction(99L, 15L, "BTC", TransactionType.SELL,
+                new BigDecimal("0.10000000"), new BigDecimal("70000.00"), NOW);
+
+        when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
+        when(transactionRepository.findByPortfolioId(15L)).thenReturn(List.of(existingBuy));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
+
+        TransactionResponse response = useCase.execute(7L, request);
+
+        assertThat(response.getId()).isEqualTo(99L);
+        assertThat(response.getCrypto()).isEqualTo("BTC");
+        assertThat(response.getType()).isEqualTo("SELL");
+        verify(transactionRepository).findByPortfolioId(15L);
+    }
+
+    @Test
+    void givenOwnedPortfolioAndInsufficientBalance_whenExecutingSell_thenRejectsRequest() {
         Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
                 Instant.parse("2026-04-05T17:00:00Z"));
         AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "SELL",
@@ -85,7 +108,7 @@ class AddTransactionUseCaseTest {
     }
 
     @Test
-    void shouldRejectMissingPortfolio() {
+    void givenMissingPortfolio_whenExecuting_thenThrowsPortfolioNotFound() {
         AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "BUY",
                 new BigDecimal("0.10000000"), new BigDecimal("65000.00"));
 
@@ -97,7 +120,7 @@ class AddTransactionUseCaseTest {
     }
 
     @Test
-    void shouldRejectPortfolioOwnedByAnotherUser() {
+    void givenPortfolioOwnedByAnotherUser_whenExecuting_thenThrowsUnauthorizedAccess() {
         Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 99L,
                 Instant.parse("2026-04-05T17:00:00Z"));
         AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "BUY",
