@@ -107,4 +107,27 @@ class TransactionControllerTest {
         mockMvc.perform(delete("/api/v1/transactions/77").principal(PRINCIPAL))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void shouldReturnValidationErrorsWhenCreatePayloadIsInvalid() throws Exception {
+        mockMvc.perform(post("/api/v1/transactions")
+                        .principal(PRINCIPAL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "portfolioId": 0,
+                                  "crypto": "btc",
+                                  "type": "HOLD",
+                                  "amount": -1,
+                                  "pricePerUnit": 0
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.portfolioId").value("portfolioId must be greater than zero"))
+                .andExpect(jsonPath("$.errors.crypto").value("crypto must contain 2-10 uppercase letters or numbers"))
+                .andExpect(jsonPath("$.errors.type").value("type must be BUY or SELL"))
+                .andExpect(jsonPath("$.errors.amount").value("amount must be greater than zero"))
+                .andExpect(jsonPath("$.errors.pricePerUnit").value("pricePerUnit must be greater than zero"));
+    }
 }
