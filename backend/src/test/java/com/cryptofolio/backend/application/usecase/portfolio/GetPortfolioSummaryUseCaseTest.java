@@ -18,11 +18,13 @@ import org.mapstruct.factory.Mappers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,5 +84,23 @@ class GetPortfolioSummaryUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(7L, 15L))
                 .isInstanceOf(UnauthorizedPortfolioAccessException.class)
                 .hasMessage("User 7 is not authorized to access portfolio: 15");
+    }
+
+    @Test
+    void shouldReturnZeroSummaryWhenPortfolioHasNoTransactions() {
+        Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
+                Instant.parse("2026-04-05T17:00:00Z"));
+
+        when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
+        when(transactionRepository.findByPortfolioId(15L)).thenReturn(List.of());
+
+        PortfolioSummaryResponse response = useCase.execute(7L, 15L);
+
+        assertThat(response.getPortfolio().getId()).isEqualTo(15L);
+        assertThat(response.getBalance()).isEqualTo(Map.of());
+        assertThat(response.getProfitLossAmount()).isEqualByComparingTo("0.00");
+        assertThat(response.getProfitLossCurrency()).isEqualTo("USD");
+        assertThat(response.getRoiPercentage()).isEqualByComparingTo("0");
+        verify(cryptoPriceProvider, never()).getCurrentPrice(org.mockito.ArgumentMatchers.any());
     }
 }
