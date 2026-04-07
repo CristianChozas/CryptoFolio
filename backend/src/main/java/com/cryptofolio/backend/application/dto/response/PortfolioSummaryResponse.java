@@ -1,14 +1,26 @@
 package com.cryptofolio.backend.application.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.math.BigDecimal;
 import java.util.Map;
 
+@Schema(name = "PortfolioSummaryResponse", description = "Resumen financiero actual de un portfolio.")
 public class PortfolioSummaryResponse {
 
+    @Schema(description = "Informacion base del portfolio.")
     private final PortfolioResponse portfolio;
+
+    @Schema(description = "Balance actual por simbolo de cripto.")
     private final Map<String, BigDecimal> balance;
+
+    @Schema(description = "Ganancia o perdida total en moneda fiat.", example = "1520.35")
     private final BigDecimal profitLossAmount;
+
+    @Schema(description = "Moneda del profit/loss.", example = "USD")
     private final String profitLossCurrency;
+
+    @Schema(description = "Retorno sobre la inversion en porcentaje.", example = "12.75")
     private final BigDecimal roiPercentage;
 
     public PortfolioSummaryResponse(

@@ -29,8 +29,8 @@ class SecurityConfigTest {
     }
 
     @Test
-    void shouldLeaveSwaggerEndpointsPublicEvenWhenResourceIsMissing() throws Exception {
+    void shouldAllowSwaggerUiWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/swagger-ui/index.html"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 }
