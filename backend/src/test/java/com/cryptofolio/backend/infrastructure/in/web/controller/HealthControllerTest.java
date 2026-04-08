@@ -25,4 +25,15 @@ class HealthControllerTest {
 			.andExpect(jsonPath("$.service").value("cryptofolio-api"))
 			.andExpect(jsonPath("$.timestamp").isNotEmpty());
 	}
+
+	@Test
+	void shouldReturnRootServiceMetadata() throws Exception {
+		mockMvc.perform(get("/"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.service").value("cryptofolio-api"))
+			.andExpect(jsonPath("$.status").value("UP"))
+			.andExpect(jsonPath("$.health").value("/api/health"))
+			.andExpect(jsonPath("$.docs").value("/swagger-ui/index.html"))
+			.andExpect(jsonPath("$.openapi").value("/v3/api-docs"));
+	}
 }
