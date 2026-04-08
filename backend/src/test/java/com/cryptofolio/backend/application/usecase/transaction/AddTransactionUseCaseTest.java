@@ -14,6 +14,7 @@ import com.cryptofolio.backend.domain.service.PortfolioCalculator;
 import com.cryptofolio.backend.domain.valueobject.TransactionType;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -133,5 +134,24 @@ class AddTransactionUseCaseTest {
                 .hasMessage("User 7 is not authorized to access portfolio: 15");
 
         verify(transactionRepository, never()).save(any());
+    }
+
+    @Test
+    void givenOwnedPortfolioAndBuyRequest_whenExecuting_thenUsesClockTimestampForSavedTransaction() {
+        Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
+                Instant.parse("2026-04-05T17:00:00Z"));
+        AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "BUY",
+                new BigDecimal("0.10000000"), new BigDecimal("65000.00"));
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+
+        when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TransactionResponse response = useCase.execute(7L, request);
+
+        assertThat(response.getCrypto()).isEqualTo("BTC");
+        assertThat(response.getType()).isEqualTo("BUY");
+        verify(transactionRepository).save(transactionCaptor.capture());
+        assertThat(transactionCaptor.getValue().getTimestamp()).isEqualTo(NOW);
     }
 }

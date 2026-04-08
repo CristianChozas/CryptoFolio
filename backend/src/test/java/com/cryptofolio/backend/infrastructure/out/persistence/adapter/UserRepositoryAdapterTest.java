@@ -4,6 +4,7 @@ import com.cryptofolio.backend.domain.model.User;
 import com.cryptofolio.backend.infrastructure.out.persistence.repository.JpaUserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
@@ -12,8 +13,9 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(UserRepositoryAdapter.class)
-class UserRepositoryAdapterTest {
+class UserRepositoryAdapterTest extends PostgreSqlContainerTest {
 
     @Autowired
     private UserRepositoryAdapter userRepositoryAdapter;

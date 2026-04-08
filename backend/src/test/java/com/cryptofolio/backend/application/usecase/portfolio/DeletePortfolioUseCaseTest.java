@@ -70,4 +70,19 @@ class DeletePortfolioUseCaseTest {
         verify(transactionRepository, never()).findByPortfolioId(15L);
         verify(portfolioRepository, never()).deleteById(15L);
     }
+
+    @Test
+    void shouldDeletePortfolioWhenItHasNoTransactions() {
+        Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
+                Instant.parse("2026-04-05T17:00:00Z"));
+
+        when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
+        when(transactionRepository.findByPortfolioId(15L)).thenReturn(List.of());
+
+        useCase.execute(7L, 15L);
+
+        verify(transactionRepository).findByPortfolioId(15L);
+        verify(transactionRepository, never()).deleteById(org.mockito.ArgumentMatchers.any());
+        verify(portfolioRepository).deleteById(15L);
+    }
 }

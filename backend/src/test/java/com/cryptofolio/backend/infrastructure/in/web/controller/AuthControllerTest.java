@@ -119,7 +119,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "username": "",
+                                  "username": "ab",
                                   "email": "invalid-email",
                                   "password": "short"
                                 }

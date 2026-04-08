@@ -9,7 +9,16 @@ import com.cryptofolio.backend.application.port.in.GetPortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioSummaryInputPort;
 import com.cryptofolio.backend.application.port.in.ListUserPortfoliosInputPort;
 import com.cryptofolio.backend.application.port.in.UpdatePortfolioInputPort;
+import com.cryptofolio.backend.infrastructure.exception.ErrorResponse;
 import com.cryptofolio.backend.infrastructure.security.AuthenticatedUserResolver;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +36,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/portfolios")
+@Tag(name = "Portfolios", description = "Gestion de portfolios del usuario autenticado.")
+@SecurityRequirement(name = "bearerAuth")
 public class PortfolioController {
 
     private final CreatePortfolioInputPort createPortfolioInputPort;
@@ -55,6 +66,15 @@ public class PortfolioController {
     }
 
     @PostMapping
+    @Operation(summary = "Crear portfolio", description = "Crea un nuevo portfolio para el usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Portfolio creado",
+                    content = @Content(schema = @Schema(implementation = PortfolioResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Datos invalidos",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<PortfolioResponse> create(@Valid @RequestBody CreatePortfolioRequest request, Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         PortfolioResponse response = createPortfolioInputPort.execute(userId, request);
@@ -62,18 +82,49 @@ public class PortfolioController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar portfolios", description = "Devuelve todos los portfolios del usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado obtenido",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = PortfolioResponse.class)))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<List<PortfolioResponse>> list(Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         return ResponseEntity.ok(listUserPortfoliosInputPort.execute(userId));
     }
 
     @GetMapping("/{portfolioId}")
+    @Operation(summary = "Obtener portfolio", description = "Recupera un portfolio concreto del usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Portfolio encontrado",
+                    content = @Content(schema = @Schema(implementation = PortfolioResponse.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Acceso a portfolio ajeno",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Portfolio no encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<PortfolioResponse> get(@PathVariable Long portfolioId, Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         return ResponseEntity.ok(getPortfolioInputPort.execute(userId, portfolioId));
     }
 
     @PutMapping("/{portfolioId}")
+    @Operation(summary = "Actualizar portfolio", description = "Actualiza el nombre o la descripcion de un portfolio del usuario autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Portfolio actualizado",
+                    content = @Content(schema = @Schema(implementation = PortfolioResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Datos invalidos",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Acceso a portfolio ajeno",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Portfolio no encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<PortfolioResponse> update(
             @PathVariable Long portfolioId,
             @Valid @RequestBody CreatePortfolioRequest request,
@@ -83,6 +134,16 @@ public class PortfolioController {
     }
 
     @DeleteMapping("/{portfolioId}")
+    @Operation(summary = "Eliminar portfolio", description = "Elimina un portfolio y sus transacciones asociadas.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Portfolio eliminado"),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Acceso a portfolio ajeno",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Portfolio no encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<Void> delete(@PathVariable Long portfolioId, Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         deletePortfolioInputPort.execute(userId, portfolioId);
@@ -90,6 +151,17 @@ public class PortfolioController {
     }
 
     @GetMapping("/{portfolioId}/summary")
+    @Operation(summary = "Obtener resumen del portfolio", description = "Devuelve balance, profit/loss y ROI del portfolio indicado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Resumen calculado",
+                    content = @Content(schema = @Schema(implementation = PortfolioSummaryResponse.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Acceso a portfolio ajeno",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Portfolio no encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<PortfolioSummaryResponse> summary(@PathVariable Long portfolioId, Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         return ResponseEntity.ok(getPortfolioSummaryInputPort.execute(userId, portfolioId));
