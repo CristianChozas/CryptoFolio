@@ -229,6 +229,41 @@ cd backend
 ./mvnw test
 ```
 
+## Deployment
+
+Recommended target for the first public deployment:
+
+- Railway
+
+This repository is ready to deploy from the repository root using the root `Dockerfile`.
+
+### Required environment variables
+
+- `SPRING_PROFILES_ACTIVE=prod`
+- `DATABASE_URL`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+- `JWT_SECRET`
+
+Optional:
+
+- `JWT_EXPIRATION_MS=86400000`
+- `COINGECKO_BASE_URL=https://api.coingecko.com/api/v3`
+- `SERVER_PORT` (Railway usually injects `PORT` automatically)
+
+An example production env file is available at:
+
+- `backend/.env.example`
+
+### Deployment checks
+
+After deployment, verify:
+
+1. `GET /api/health`
+2. `GET /v3/api-docs`
+3. database migrations run successfully
+4. login/register flow works with production environment variables
+
 ## Testing Protocol
 
 Testing style follows "just enough":

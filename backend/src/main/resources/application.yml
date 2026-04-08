@@ -101,6 +101,9 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+server:
+  port: ${SERVER_PORT:${PORT:8081}}
+
 logging:
   level:
     com.cryptofolio: INFO
