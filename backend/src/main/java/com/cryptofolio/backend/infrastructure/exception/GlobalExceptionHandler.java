@@ -60,17 +60,17 @@ public class GlobalExceptionHandler {
         exception.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.putIfAbsent(error.getField(), error.getDefaultMessage()));
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(
-                        Instant.now(),
-                        HttpStatus.BAD_REQUEST.value(),
-                        "Validation failed",
-                        request.getRequestURI(),
-                        errors));
+        ErrorResponse errorResponse = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                request.getRequestURI(),
+                errors);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message, String path) {
-        return ResponseEntity.status(status)
-                .body(new ErrorResponse(Instant.now(), status.value(), message, path));
+        ErrorResponse errorResponse = new ErrorResponse(Instant.now(), status.value(), message, path);
+        return new ResponseEntity<>(errorResponse, status);
     }
 }

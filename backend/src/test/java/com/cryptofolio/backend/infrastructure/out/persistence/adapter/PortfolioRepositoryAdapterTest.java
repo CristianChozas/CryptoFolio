@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PortfolioRepositoryAdapter.class)
+@SuppressWarnings("null")
 class PortfolioRepositoryAdapterTest extends PostgreSqlContainerTest {
 
     @Autowired

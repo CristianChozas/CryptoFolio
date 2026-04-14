@@ -38,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PortfolioController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@SuppressWarnings("null")
 class PortfolioControllerTest {
 
     private static final Principal PRINCIPAL = () -> "cristian@example.com";

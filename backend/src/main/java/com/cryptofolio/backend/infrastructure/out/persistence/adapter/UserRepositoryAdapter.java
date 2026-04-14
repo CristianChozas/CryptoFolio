@@ -6,6 +6,7 @@ import com.cryptofolio.backend.infrastructure.out.persistence.entity.UserEntity;
 import com.cryptofolio.backend.infrastructure.out.persistence.repository.JpaUserRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -14,7 +15,7 @@ public class UserRepositoryAdapter implements UserRepository {
     private final JpaUserRepository jpaUserRepository;
 
     public UserRepositoryAdapter(JpaUserRepository jpaUserRepository) {
-        this.jpaUserRepository = jpaUserRepository;
+        this.jpaUserRepository = Objects.requireNonNull(jpaUserRepository, "jpaUserRepository cannot be null");
     }
 
     @Override
@@ -25,7 +26,8 @@ public class UserRepositoryAdapter implements UserRepository {
 
     @Override
     public Optional<User> findById(Long id) {
-        return jpaUserRepository.findById(id)
+        Long nonNullId = Objects.requireNonNull(id, "user id cannot be null");
+        return jpaUserRepository.findById(nonNullId)
                 .map(this::toDomain);
     }
 
@@ -37,7 +39,8 @@ public class UserRepositoryAdapter implements UserRepository {
 
     @Override
     public void deleteById(Long id) {
-        jpaUserRepository.deleteById(id);
+        Long nonNullId = Objects.requireNonNull(id, "user id cannot be null");
+        jpaUserRepository.deleteById(nonNullId);
     }
 
     private UserEntity toEntity(User user) {
@@ -52,9 +55,9 @@ public class UserRepositoryAdapter implements UserRepository {
     private User toDomain(UserEntity userEntity) {
         return new User(
                 userEntity.getId(),
-                userEntity.getUsername(),
-                userEntity.getEmail(),
-                userEntity.getPasswordHash(),
-                userEntity.getCreatedAt());
+                Objects.requireNonNull(userEntity.getUsername(), "user username cannot be null"),
+                Objects.requireNonNull(userEntity.getEmail(), "user email cannot be null"),
+                Objects.requireNonNull(userEntity.getPasswordHash(), "user passwordHash cannot be null"),
+                Objects.requireNonNull(userEntity.getCreatedAt(), "user createdAt cannot be null"));
     }
 }
