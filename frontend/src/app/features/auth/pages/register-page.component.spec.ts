@@ -16,7 +16,7 @@ describe('RegisterPageComponent', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('h1')?.textContent).toContain('Empieza a organizar tus portfolios');
+    expect(compiled.querySelector('h2')?.textContent).toContain('Abre tu espacio en CryptoFolio');
     expect(compiled.textContent).toContain('Crear cuenta');
     expect(compiled.querySelector('form')).toBeTruthy();
   });

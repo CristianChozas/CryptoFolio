@@ -16,11 +16,14 @@
         </div>
       }
 
-      <form class="register-form" [formGroup]="registerForm" (ngSubmit)="submitForm()" novalidate>
+      <form class="register-form" [formGroup]="registerForm" (ngSubmit)="submitForm()" novalidate autocomplete="off">
+        <input class="trap-field" type="text" name="fake-username" autocomplete="username" tabindex="-1" />
+        <input class="trap-field" type="password" name="fake-password" autocomplete="current-password" tabindex="-1" />
+
         <div class="form-grid">
           <div class="field-group full-width">
             <label for="username">Nombre de usuario</label>
-            <input id="username" type="text" formControlName="username" placeholder="Ej. cristiandev" />
+            <input id="username" type="text" formControlName="username" placeholder="Ej. cristiandev" autocomplete="off" autocapitalize="off" spellcheck="false" />
             @if (showError('username')) {
               <p class="field-error">{{ getControlError('username') }}</p>
             }
@@ -28,7 +31,7 @@
 
           <div class="field-group full-width">
             <label for="email">Email</label>
-            <input id="email" type="email" formControlName="email" placeholder="tu@email.com" />
+            <input id="email" type="text" inputmode="email" name="register-contact" formControlName="email" placeholder="tu@email.com" autocomplete="off" autocapitalize="off" spellcheck="false" />
             @if (showError('email')) {
               <p class="field-error">{{ getControlError('email') }}</p>
             }
@@ -62,7 +65,7 @@
         <button class="submit-button" type="submit">Crear cuenta</button>
 
         <p class="helper-copy">
-          ¿Ya tienes una cuenta? <button class="inline-link" type="button">Inicia sesión</button>
+          ¿Ya tienes una cuenta? <a class="inline-link" routerLink="/login">Inicia sesión</a>
         </p>
       </form>
     </article>

@@ -1,25 +1,18 @@
-.register-page {
+.login-page {
   min-height: 100%;
   color: #f5f7fa;
 }
 
-.register-shell {
+.login-shell {
   width: min(1160px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 3rem;
 }
 
-.register-topbar {
+.login-topbar {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 1rem;
-}
-
-.register-card {
-  border: 1px solid #26282d;
-  background: linear-gradient(180deg, rgba(23, 24, 27, 0.96), rgba(17, 18, 20, 0.96));
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  border-radius: 1.5rem;
 }
 
 .back-link {
@@ -28,8 +21,20 @@
   text-decoration: none;
 }
 
-.back-link:hover {
+.back-link:hover,
+.inline-link:hover {
   color: #f5f7fa;
+}
+
+.login-card {
+  width: min(100%, 560px);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem;
+  border: 1px solid #26282d;
+  background: linear-gradient(180deg, rgba(23, 24, 27, 0.96), rgba(17, 18, 20, 0.96));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  border-radius: 1.5rem;
 }
 
 h2 {
@@ -44,13 +49,6 @@ h2 {
   line-height: 1.65;
 }
 
-.register-card {
-  width: min(100%, 560px);
-  margin-left: auto;
-  margin-right: auto;
-  padding: 1.5rem;
-}
-
 .success-banner {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
@@ -61,20 +59,15 @@ h2 {
   line-height: 1.55;
 }
 
-.register-form {
+.login-form {
   margin-top: 1.5rem;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
 }
 
 .field-group {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  margin-bottom: 1rem;
 }
 
 .trap-field {
@@ -86,10 +79,6 @@ h2 {
   border: 0;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
-}
-
-.full-width {
-  grid-column: 1 / -1;
 }
 
 label {
@@ -117,31 +106,63 @@ input::placeholder {
   color: #7d8593;
 }
 
-.checkbox-row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  margin-top: 1rem;
+.captcha-panel {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid #343841;
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
-.checkbox-row input {
-  width: 1rem;
-  min-height: 1rem;
-  margin-top: 0.2rem;
-  padding: 0;
-}
-
+.captcha-kicker,
+.captcha-copy,
 .field-error {
   margin: 0;
-  color: #ff9aad;
-  font-size: 0.85rem;
 }
 
-.submit-button,
-.inline-link {
+.captcha-kicker {
+  color: #f0b90b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.captcha-copy {
+  margin-top: 0.4rem;
+  color: #a7afbc;
+  line-height: 1.55;
+}
+
+.captcha-challenge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.captcha-challenge strong {
+  font-size: 1.4rem;
+  color: #f5f7fa;
+}
+
+.refresh-button,
+.submit-button {
   border: 0;
   cursor: pointer;
   font: inherit;
+}
+
+.refresh-button {
+  min-height: 2.5rem;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #f5f7fa;
+}
+
+.field-error {
+  color: #ff9aad;
+  font-size: 0.85rem;
 }
 
 .submit-button {
@@ -159,13 +180,13 @@ input::placeholder {
 }
 
 .inline-link {
-  padding: 0;
   color: #f0b90b;
-  background: transparent;
+  text-decoration: none;
 }
 
-@media (max-width: 920px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 620px) {
+  .captcha-challenge {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

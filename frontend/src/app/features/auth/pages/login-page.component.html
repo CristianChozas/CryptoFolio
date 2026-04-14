@@ -1,0 +1,67 @@
+<main class="login-page">
+  <section class="login-shell">
+    <div class="login-topbar">
+      <a class="back-link" routerLink="/">⌂ Volver al inicio</a>
+    </div>
+
+    <article class="login-card">
+      <header class="card-header">
+        <h2>Accede a tu espacio en CryptoFolio</h2>
+        <p>Introduce tus credenciales y completa la verificación humana antes de continuar.</p>
+      </header>
+
+      @if (loginReady) {
+        <div class="success-banner" role="status">
+          Acceso validado a nivel de interfaz. En el siguiente paso conectaremos este formulario con el backend real.
+        </div>
+      }
+
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="submitForm()" novalidate autocomplete="off">
+        <input class="trap-field" type="text" name="fake-username" autocomplete="username" tabindex="-1" />
+        <input class="trap-field" type="password" name="fake-password" autocomplete="current-password" tabindex="-1" />
+
+        <div class="field-group">
+          <label for="login-email">Email</label>
+          <input id="login-email" type="text" inputmode="email" name="login-identifier" formControlName="email" placeholder="tu@email.com" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          @if (showError('email')) {
+            <p class="field-error">{{ getControlError('email') }}</p>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="login-password">Contraseña</label>
+          <input id="login-password" type="password" formControlName="password" placeholder="Introduce tu contraseña" />
+          @if (showError('password')) {
+            <p class="field-error">{{ getControlError('password') }}</p>
+          }
+        </div>
+
+        <section class="captcha-panel" aria-label="Verificación humana">
+          <div>
+            <p class="captcha-kicker">Verificación humana</p>
+            <p class="captcha-copy">Resuelve esta suma para confirmar que no eres un bot.</p>
+          </div>
+
+          <div class="captcha-challenge">
+            <strong>{{ challenge.left }} + {{ challenge.right }} = ?</strong>
+            <button class="refresh-button" type="button" (click)="refreshChallenge()">Generar otro reto</button>
+          </div>
+
+          <div class="field-group">
+            <label for="captchaAnswer">Resultado</label>
+            <input id="captchaAnswer" type="number" formControlName="captchaAnswer" placeholder="Escribe el resultado" />
+            @if (showError('captchaAnswer')) {
+              <p class="field-error">{{ getControlError('captchaAnswer') }}</p>
+            }
+          </div>
+        </section>
+
+        <button class="submit-button" type="submit">Entrar</button>
+
+        <p class="helper-copy">
+          ¿Todavía no tienes cuenta? <a class="inline-link" routerLink="/register">Crear cuenta</a>
+        </p>
+      </form>
+    </article>
+  </section>
+</main>
