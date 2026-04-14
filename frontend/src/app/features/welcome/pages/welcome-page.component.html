@@ -1,21 +1,81 @@
-<main class="welcome-page">
-  <section class="hero-card">
-    <span class="eyebrow">Ticket #601</span>
-    <h1>CryptoFolio</h1>
-    <p class="subtitle">
-      Angular frontend bootstrap ready for the next tickets.
-    </p>
+<main class="landing-page">
+  <section class="hero-section">
+    <nav class="topbar">
+      <div class="brand-mark">
+        <span class="brand-badge">CF</span>
+        <div>
+          <p class="brand-name">CryptoFolio</p>
+          <p class="brand-caption">Seguimiento inteligente de portfolios crypto</p>
+        </div>
+      </div>
 
-    <div class="status-grid">
-      <article>
-        <h2>Current scope</h2>
-        <p>Project scaffold, standalone components, router, and a clean base UI shell.</p>
-      </article>
+      <div class="topbar-actions">
+        <button class="ghost-link" type="button">Login</button>
+        <button class="primary-link" type="button">Sign In</button>
+      </div>
+    </nav>
 
-      <article>
-        <h2>Next tickets</h2>
-        <p>Authentication flow, dashboard layout, portfolio list, and portfolio detail pages.</p>
-      </article>
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">Controla tu patrimonio crypto</span>
+        <h1>Controla tu cartera con claridad.</h1>
+        <p class="subtitle">
+          Sigue tus portfolios, movimientos y rentabilidad desde un único lugar.
+        </p>
+
+        <div class="hero-actions">
+          <button class="primary-link" type="button">Crear cuenta</button>
+          <button class="ghost-link" type="button">Iniciar sesión</button>
+        </div>
+      </div>
+
+      <aside class="hero-panel">
+        <div class="metric-list">
+          @for (metric of summaryMetrics; track metric.label) {
+            <article class="metric-card">
+              <span class="metric-label">{{ metric.label }}</span>
+              <strong class="metric-value">{{ metric.value }}</strong>
+              <p>{{ metric.detail }}</p>
+            </article>
+          }
+        </div>
+      </aside>
     </div>
+  </section>
+
+  <section class="content-section">
+    <div class="feature-grid">
+      @for (feature of featureCards; track feature.title) {
+        <article class="feature-card">
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="content-section single-panel-section">
+    <article class="info-panel">
+      <span class="eyebrow">Diseñada para el usuario</span>
+
+      <ul class="bullet-list">
+        @for (highlight of productHighlights; track highlight) {
+          <li>{{ highlight }}</li>
+        }
+      </ul>
+    </article>
+  </section>
+
+  <section class="content-section audience-section">
+    <article class="info-panel audience-panel">
+      <span class="eyebrow">Para quién es</span>
+      <h2>CryptoFolio está pensada para usuarios que quieren claridad y control.</h2>
+
+      <ul class="bullet-list">
+        @for (user of targetUsers; track user) {
+          <li>{{ user }}</li>
+        }
+      </ul>
+    </article>
   </section>
 </main>

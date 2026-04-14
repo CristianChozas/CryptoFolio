@@ -8,13 +8,14 @@ describe('WelcomePageComponent', () => {
     }).compileComponents();
   });
 
-  it('should render the frontend bootstrap heading', () => {
+  it('should render the landing page in spanish with product messaging', () => {
     const fixture = TestBed.createComponent(WelcomePageComponent);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('h1')?.textContent).toContain('CryptoFolio');
-    expect(compiled.textContent).toContain('Ticket #601');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Controla tu cartera');
+    expect(compiled.textContent).toContain('CryptoFolio');
+    expect(compiled.textContent).toContain('Diseñada para el usuario');
   });
 });
