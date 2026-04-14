@@ -1,0 +1,70 @@
+<main class="register-page">
+  <section class="register-shell">
+    <div class="register-topbar">
+      <a class="back-link" routerLink="/">⌂ Volver al inicio</a>
+    </div>
+
+    <article class="register-card">
+      <header class="card-header">
+        <h2>Abre tu espacio en CryptoFolio</h2>
+        <p>Completa tus datos para preparar tu acceso a la aplicación.</p>
+      </header>
+
+      @if (accountCreated) {
+        <div class="success-banner" role="status">
+          Cuenta preparada a nivel de interfaz. En el siguiente paso conectaremos este formulario con el backend real.
+        </div>
+      }
+
+      <form class="register-form" [formGroup]="registerForm" (ngSubmit)="submitForm()" novalidate>
+        <div class="form-grid">
+          <div class="field-group full-width">
+            <label for="username">Nombre de usuario</label>
+            <input id="username" type="text" formControlName="username" placeholder="Ej. cristiandev" />
+            @if (showError('username')) {
+              <p class="field-error">{{ getControlError('username') }}</p>
+            }
+          </div>
+
+          <div class="field-group full-width">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" placeholder="tu@email.com" />
+            @if (showError('email')) {
+              <p class="field-error">{{ getControlError('email') }}</p>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="password">Contraseña</label>
+            <input id="password" type="password" formControlName="password" placeholder="Mínimo 8 caracteres" />
+            @if (showError('password')) {
+              <p class="field-error">{{ getControlError('password') }}</p>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="confirmPassword">Confirmar contraseña</label>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" placeholder="Repite la contraseña" />
+            @if (showError('confirmPassword')) {
+              <p class="field-error">{{ getControlError('confirmPassword') }}</p>
+            }
+          </div>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" formControlName="acceptedTerms" />
+          <span>Acepto los términos y condiciones de uso de CryptoFolio.</span>
+        </label>
+        @if (showError('acceptedTerms')) {
+          <p class="field-error">{{ getControlError('acceptedTerms') }}</p>
+        }
+
+        <button class="submit-button" type="submit">Crear cuenta</button>
+
+        <p class="helper-copy">
+          ¿Ya tienes una cuenta? <button class="inline-link" type="button">Inicia sesión</button>
+        </p>
+      </form>
+    </article>
+  </section>
+</main>

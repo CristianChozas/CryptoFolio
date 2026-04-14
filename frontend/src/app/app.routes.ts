@@ -7,5 +7,12 @@ export const routes: Routes = [
       import('./features/welcome/pages/welcome-page.component').then(
         (module) => module.WelcomePageComponent
       )
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/pages/register-page.component').then(
+        (module) => module.RegisterPageComponent
+      )
   }
 ];

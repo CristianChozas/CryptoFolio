@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { WelcomePageComponent } from './welcome-page.component';
 
 describe('WelcomePageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WelcomePageComponent]
+      imports: [WelcomePageComponent],
+      providers: [provideRouter([])]
     }).compileComponents();
   });
 
