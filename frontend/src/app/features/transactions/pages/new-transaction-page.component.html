@@ -1,0 +1,179 @@
+<main class="new-transaction-page">
+  <section class="new-transaction-shell">
+    <div class="new-transaction-topbar">
+      <a class="back-link" routerLink="/dashboard">← Volver al dashboard</a>
+    </div>
+
+    <section class="new-transaction-layout">
+      <article class="new-transaction-card">
+        <header class="card-header">
+          <p class="eyebrow">Nueva operación</p>
+          <h2>Registrar una nueva operación</h2>
+          <p>Primero selecciona un portfolio activo. Después registrarás la transacción sobre ese portfolio.</p>
+        </header>
+
+        @if (successMessage) {
+          <div class="success-banner" role="status">
+            {{ successMessage }}
+          </div>
+        }
+
+        @if (requestError) {
+          <div class="error-banner" role="alert">
+            {{ requestError }}
+          </div>
+        }
+
+        @if (loadingPortfolios) {
+          <div class="info-panel">
+            <strong>Cargando portfolios...</strong>
+            <p>Estamos preparando los destinos disponibles para tu operación.</p>
+          </div>
+        } @else if (portfolioLoadError) {
+          <div class="error-banner" role="alert">
+            {{ portfolioLoadError }}
+          </div>
+          <div class="action-row action-row-end">
+            <button class="secondary-button" type="button" (click)="retryLoadPortfolios()">Reintentar</button>
+          </div>
+        } @else if (!hasPortfolios) {
+          <div class="info-panel">
+            <strong>No tienes portfolios todavía</strong>
+            <p>Primero crea un portfolio para poder registrar operaciones.</p>
+            <a class="primary-link" routerLink="/portfolios/new">Crear portfolio</a>
+          </div>
+        } @else {
+          @if (!showTransactionStep) {
+            <section class="selection-step">
+              <div class="field-group">
+                <label for="portfolio-selector">Portfolio activo</label>
+                <select id="portfolio-selector" [value]="selectedPortfolioId ?? ''" (change)="selectPortfolio($any($event.target).value)">
+                  @for (portfolio of portfolios; track portfolio.id) {
+                    <option [value]="portfolio.id">{{ portfolio.name }}</option>
+                  }
+                </select>
+                <p class="selector-help">Solo puedes elegir un portfolio por operación.</p>
+                @if (showPortfolioSelectionError) {
+                  <p class="field-error">Debes seleccionar un portfolio para continuar.</p>
+                }
+              </div>
+
+              <div class="action-row action-row-end">
+                <button class="submit-button" type="button" (click)="continueToTransaction()">Siguiente</button>
+              </div>
+            </section>
+          } @else {
+            <form class="new-transaction-form" [formGroup]="transactionForm" (ngSubmit)="submitForm()" novalidate>
+              <div class="selection-summary">
+                <div>
+                  <span class="selection-label">Portfolio seleccionado</span>
+                  <strong>{{ selectedSummary?.portfolio?.name || 'Portfolio activo' }}</strong>
+                </div>
+                <button class="secondary-button" type="button" (click)="goBackToSelection()">Cambiar</button>
+              </div>
+
+              <div class="field-grid">
+                <div class="field-group">
+                  <label for="type">Tipo</label>
+                  <select id="type" formControlName="type">
+                    <option value="BUY">Compra</option>
+                    <option value="SELL">Venta</option>
+                  </select>
+                  @if (showError('type')) {
+                    <p class="field-error">{{ getControlError('type') }}</p>
+                  }
+                </div>
+
+                <div class="field-group">
+                  <label for="crypto">Crypto</label>
+                  <input id="crypto" type="text" formControlName="crypto" placeholder="Ej. BTC" maxlength="10" />
+                  @if (showError('crypto')) {
+                    <p class="field-error">{{ getControlError('crypto') }}</p>
+                  }
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <div class="field-group">
+                  <label for="amount">Cantidad</label>
+                  <input id="amount" type="number" formControlName="amount" step="0.00000001" placeholder="0.25000000" />
+                  @if (showError('amount')) {
+                    <p class="field-error">{{ getControlError('amount') }}</p>
+                  }
+                </div>
+
+                <div class="field-group">
+                  <label for="pricePerUnit">Precio unitario (USD)</label>
+                  <input id="pricePerUnit" type="number" formControlName="pricePerUnit" step="0.01" placeholder="65000.00" />
+                  @if (showError('pricePerUnit')) {
+                    <p class="field-error">{{ getControlError('pricePerUnit') }}</p>
+                  }
+                </div>
+              </div>
+
+              <div class="action-row">
+                <button class="secondary-button" type="button" (click)="goBackToSelection()">Volver</button>
+                <button class="submit-button" type="submit" [disabled]="creatingTransaction">
+                  {{ creatingTransaction ? 'Guardando...' : 'Guardar operación' }}
+                </button>
+              </div>
+            </form>
+          }
+        }
+      </article>
+
+      <aside class="summary-card">
+        <div class="summary-header">
+          <p class="eyebrow">Resumen del portfolio</p>
+          <h3>Contexto antes de operar</h3>
+        </div>
+
+        @if (!showTransactionStep) {
+          <p class="summary-copy">Selecciona un portfolio y pulsa <strong>Siguiente</strong> para revisar el contexto antes de registrar la transacción.</p>
+        } @else if (loadingSummary) {
+          <p class="summary-copy">Cargando resumen del portfolio seleccionado...</p>
+        } @else if (selectedSummary) {
+          <div class="summary-block">
+            <strong>{{ selectedSummary.portfolio.name }}</strong>
+            <p>{{ selectedSummary.portfolio.description || 'Sin descripción todavía.' }}</p>
+          </div>
+
+          <div class="summary-metrics">
+            <article>
+              <span>Profit / Loss</span>
+              <strong [class.positive-text]="selectedSummary.profitLossAmount >= 0" [class.negative-text]="selectedSummary.profitLossAmount < 0">
+                {{ formatCurrency(selectedSummary.profitLossAmount, selectedSummary.profitLossCurrency || 'USD') }}
+              </strong>
+            </article>
+
+            <article>
+              <span>ROI</span>
+              <strong [class.positive-text]="selectedSummary.roiPercentage >= 0" [class.negative-text]="selectedSummary.roiPercentage < 0">
+                {{ formatPercentage(selectedSummary.roiPercentage) }}
+              </strong>
+            </article>
+          </div>
+
+          <div class="balance-block">
+            <p class="balance-title">Balances actuales</p>
+
+            @if (balanceEntries().length === 0) {
+              <p class="summary-copy">Todavía no hay posiciones abiertas en este portfolio.</p>
+            } @else {
+              <div class="balance-list">
+                @for (entry of balanceEntries(); track entry[0]) {
+                  <div class="balance-row">
+                    <span>{{ entry[0] }}</span>
+                    <strong>{{ entry[1] }}</strong>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="summary-copy">Selecciona un portfolio para ver su estado actual antes de registrar la operación.</p>
+        }
+      </aside>
+    </section>
+  </section>
+</main>

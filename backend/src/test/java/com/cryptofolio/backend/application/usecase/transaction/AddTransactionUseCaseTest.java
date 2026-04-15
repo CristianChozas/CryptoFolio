@@ -5,12 +5,10 @@ import com.cryptofolio.backend.application.dto.response.TransactionResponse;
 import com.cryptofolio.backend.application.mapper.TransactionMapper;
 import com.cryptofolio.backend.application.port.out.PortfolioRepository;
 import com.cryptofolio.backend.application.port.out.TransactionRepository;
-import com.cryptofolio.backend.domain.exception.InsufficientFundsException;
 import com.cryptofolio.backend.domain.exception.PortfolioNotFoundException;
 import com.cryptofolio.backend.domain.exception.UnauthorizedPortfolioAccessException;
 import com.cryptofolio.backend.domain.model.Portfolio;
 import com.cryptofolio.backend.domain.model.Transaction;
-import com.cryptofolio.backend.domain.service.PortfolioCalculator;
 import com.cryptofolio.backend.domain.valueobject.TransactionType;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -39,13 +37,10 @@ class AddTransactionUseCaseTest {
     private final PortfolioRepository portfolioRepository = mock(PortfolioRepository.class);
     private final TransactionRepository transactionRepository = mock(TransactionRepository.class);
     private final TransactionMapper transactionMapper = Mappers.getMapper(TransactionMapper.class);
-    private final PortfolioCalculator portfolioCalculator = new PortfolioCalculator();
-
     private final AddTransactionUseCase useCase = new AddTransactionUseCase(
             portfolioRepository,
             transactionRepository,
             transactionMapper,
-            portfolioCalculator,
             FIXED_CLOCK);
 
     @Test
@@ -69,18 +64,15 @@ class AddTransactionUseCaseTest {
     }
 
     @Test
-    void givenOwnedPortfolioAndSufficientBalance_whenExecutingSell_thenSavesTransaction() {
+    void givenOwnedPortfolioAndSellRequest_whenExecuting_thenSavesTransactionWithoutBalanceValidation() {
         Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
                 Instant.parse("2026-04-05T17:00:00Z"));
         AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "SELL",
                 new BigDecimal("0.10000000"), new BigDecimal("70000.00"));
-        Transaction existingBuy = new Transaction(10L, 15L, "BTC", TransactionType.BUY,
-                new BigDecimal("0.25000000"), new BigDecimal("65000.00"), Instant.parse("2026-04-05T17:30:00Z"));
         Transaction savedTransaction = new Transaction(99L, 15L, "BTC", TransactionType.SELL,
                 new BigDecimal("0.10000000"), new BigDecimal("70000.00"), NOW);
 
         when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
-        when(transactionRepository.findByPortfolioId(15L)).thenReturn(List.of(existingBuy));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
 
         TransactionResponse response = useCase.execute(7L, request);
@@ -88,24 +80,27 @@ class AddTransactionUseCaseTest {
         assertThat(response.getId()).isEqualTo(99L);
         assertThat(response.getCrypto()).isEqualTo("BTC");
         assertThat(response.getType()).isEqualTo("SELL");
-        verify(transactionRepository).findByPortfolioId(15L);
+        verify(transactionRepository, never()).findByPortfolioId(15L);
     }
 
     @Test
-    void givenOwnedPortfolioAndInsufficientBalance_whenExecutingSell_thenRejectsRequest() {
+    void givenOwnedPortfolioAndNoExistingBalance_whenExecutingSell_thenStillSavesTransaction() {
         Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
                 Instant.parse("2026-04-05T17:00:00Z"));
         AddTransactionRequest request = new AddTransactionRequest(15L, "BTC", "SELL",
                 new BigDecimal("0.10000000"), new BigDecimal("70000.00"));
+        Transaction savedTransaction = new Transaction(99L, 15L, "BTC", TransactionType.SELL,
+                new BigDecimal("0.10000000"), new BigDecimal("70000.00"), NOW);
 
         when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
-        when(transactionRepository.findByPortfolioId(15L)).thenReturn(List.of());
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
 
-        assertThatThrownBy(() -> useCase.execute(7L, request))
-                .isInstanceOf(InsufficientFundsException.class)
-                .hasMessage("Insufficient funds for BTC. Available: 0, requested: 0.10000000");
+        TransactionResponse response = useCase.execute(7L, request);
 
-        verify(transactionRepository, never()).save(any());
+        assertThat(response.getId()).isEqualTo(99L);
+        assertThat(response.getType()).isEqualTo("SELL");
+        verify(transactionRepository).save(any(Transaction.class));
+        verify(transactionRepository, never()).findByPortfolioId(15L);
     }
 
     @Test

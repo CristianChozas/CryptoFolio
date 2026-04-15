@@ -120,6 +120,11 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/portfolios/new']);
   }
 
+  protected openNewOperation(): void {
+    this.closeSidebar();
+    void this.router.navigate(['/operations/new']);
+  }
+
   protected get hasPortfolios(): boolean {
     return this.portfolioRows.length > 0;
   }

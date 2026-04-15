@@ -9,7 +9,6 @@ import com.cryptofolio.backend.application.port.out.TransactionRepository;
 import com.cryptofolio.backend.application.usecase.transaction.AddTransactionUseCase;
 import com.cryptofolio.backend.application.usecase.transaction.DeleteTransactionUseCase;
 import com.cryptofolio.backend.application.usecase.transaction.GetTransactionHistoryUseCase;
-import com.cryptofolio.backend.domain.service.PortfolioCalculator;
 import org.mapstruct.factory.Mappers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,13 +28,11 @@ public class TransactionConfig {
             PortfolioRepository portfolioRepository,
             TransactionRepository transactionRepository,
             TransactionMapper transactionMapper,
-            PortfolioCalculator portfolioCalculator,
             Clock clock) {
         return new AddTransactionUseCase(
                 portfolioRepository,
                 transactionRepository,
                 transactionMapper,
-                portfolioCalculator,
                 clock);
     }
 
