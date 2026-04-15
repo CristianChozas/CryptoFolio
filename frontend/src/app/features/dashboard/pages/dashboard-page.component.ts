@@ -20,6 +20,13 @@ interface SummaryCard {
   flashClass: string;
 }
 
+interface PortfolioResponse {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
@@ -66,16 +73,9 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     }
   ];
 
-  protected readonly portfolioRows = [
-    {
-      name: 'Core Holdings',
-      assets: 'BTC, ETH, SOL',
-      balance: '€14,240.00',
-      balanceClass: '',
-      performance: '+12.4%',
-      performanceClass: 'positive-text'
-    }
-  ];
+  protected portfolioRows: PortfolioResponse[] = [];
+  protected portfoliosLoading = true;
+  protected portfoliosError = '';
 
   protected readonly activityItems = [
     'Compra registrada de BTC por €1,250.00',
@@ -85,6 +85,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.username = this.authService.getUsername() ?? 'Cristian';
+    this.fetchPortfolios();
     this.fetchPrices();
     this.connectPriceStream();
   }
@@ -119,6 +120,10 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/portfolios/new']);
   }
 
+  protected get hasPortfolios(): boolean {
+    return this.portfolioRows.length > 0;
+  }
+
   protected logout(): void {
     this.authService.logout();
     this.closeSidebar();
@@ -149,6 +154,31 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     this.http.get<CoinPriceResponse[]>('/api/v1/prices').subscribe({
       next: (prices) => this.applyPrices(prices),
       error: () => this.showUnavailablePrices()
+    });
+  }
+
+  private fetchPortfolios(): void {
+    this.portfoliosLoading = true;
+    this.portfoliosError = '';
+
+    this.http.get<PortfolioResponse[]>('/api/v1/portfolios').subscribe({
+      next: (portfolios) => {
+        this.portfolioRows = portfolios;
+        this.portfoliosLoading = false;
+      },
+      error: () => {
+        this.portfolioRows = [];
+        this.portfoliosLoading = false;
+        this.portfoliosError = 'No se pudieron cargar tus portfolios.';
+      }
+    });
+  }
+
+  protected formatPortfolioDate(value: string): string {
+    return new Date(value).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
   }
 

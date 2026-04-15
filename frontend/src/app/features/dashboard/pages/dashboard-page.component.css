@@ -345,6 +345,10 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.portfolio-meta {
+  text-align: right;
+}
+
 .portfolio-row strong,
 .portfolio-row span {
   display: block;
@@ -352,6 +356,42 @@ h1 {
 
 .portfolio-row p {
   margin-top: 0.3rem;
+}
+
+.portfolio-empty-state {
+  padding: 1.1rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.portfolio-empty-state strong,
+.portfolio-empty-state p {
+  display: block;
+  margin: 0;
+}
+
+.portfolio-empty-state p {
+  margin-top: 0.4rem;
+  color: #a7afbc;
+  line-height: 1.6;
+}
+
+.portfolio-empty-state-error {
+  border-color: rgba(224, 90, 90, 0.28);
+}
+
+.empty-state-button {
+  min-height: 2.75rem;
+  margin-top: 0.9rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: #f0b90b;
+  color: #0b0b0c;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .positive-text {
@@ -422,6 +462,15 @@ h1 {
 
   .summary-value {
     font-size: 1.35rem;
+  }
+
+  .portfolio-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .portfolio-meta {
+    text-align: left;
   }
 
   .header-button {

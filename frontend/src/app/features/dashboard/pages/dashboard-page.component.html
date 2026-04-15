@@ -79,21 +79,39 @@
               <p class="panel-kicker">Portfolios</p>
               <h2>Vista general</h2>
             </div>
-            <button class="panel-link" type="button">Ver todos</button>
+            <button class="panel-link" type="button" (click)="openNewPortfolio()">+ Nuevo</button>
           </div>
 
           <div class="portfolio-table">
-            @for (portfolio of portfolioRows; track portfolio.name) {
-              <div class="portfolio-row">
-                <div>
-                  <strong>{{ portfolio.name }}</strong>
-                  <p>{{ portfolio.assets }}</p>
-                </div>
-                <div>
-                  <span [class]="portfolio.balanceClass">{{ portfolio.balance }}</span>
-                  <p [class]="portfolio.performanceClass">{{ portfolio.performance }}</p>
-                </div>
+            @if (portfoliosLoading) {
+              <div class="portfolio-empty-state">
+                <strong>Cargando portfolios...</strong>
+                <p>Estamos recuperando tu espacio de trabajo.</p>
               </div>
+            } @else if (portfoliosError) {
+              <div class="portfolio-empty-state portfolio-empty-state-error">
+                <strong>No disponible</strong>
+                <p>{{ portfoliosError }}</p>
+              </div>
+            } @else if (!hasPortfolios) {
+              <div class="portfolio-empty-state">
+                <strong>Aún no tienes portfolios</strong>
+                <p>Crea tu primer portfolio para empezar a registrar movimientos.</p>
+                <button class="empty-state-button" type="button" (click)="openNewPortfolio()">Crear portfolio</button>
+              </div>
+            } @else {
+              @for (portfolio of portfolioRows; track portfolio.id) {
+                <div class="portfolio-row">
+                  <div>
+                    <strong>{{ portfolio.name }}</strong>
+                    <p>{{ portfolio.description || 'Sin descripción todavía.' }}</p>
+                  </div>
+                  <div class="portfolio-meta">
+                    <span>#{{ portfolio.id }}</span>
+                    <p>Creado {{ formatPortfolioDate(portfolio.createdAt) }}</p>
+                  </div>
+                </div>
+              }
             }
           </div>
         </article>
