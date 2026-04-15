@@ -9,6 +9,13 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./features/dashboard/pages/dashboard-page.component').then(
+        (module) => module.DashboardPageComponent
+      )
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./features/auth/pages/login-page.component').then(

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login-page',
@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
 })
 export class LoginPageComponent {
   private readonly formBuilder = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   protected submitted = false;
   protected loginReady = false;
@@ -40,6 +41,7 @@ export class LoginPageComponent {
     }
 
     this.loginReady = true;
+    void this.router.navigate(['/dashboard']);
   }
 
   protected refreshChallenge(): void {

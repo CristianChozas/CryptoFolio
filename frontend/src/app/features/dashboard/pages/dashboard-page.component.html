@@ -1,0 +1,118 @@
+<main class="dashboard-page">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir navegación del dashboard"
+        [attr.aria-expanded]="sidebarOpen"
+        (click)="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="topbar-brand">
+        <span class="brand-badge">CF</span>
+        <div>
+          <p class="brand-name">CryptoFolio</p>
+          <p class="brand-caption">Workspace</p>
+        </div>
+      </div>
+
+      <div class="topbar-mobile-actions">
+        <button class="profile-button" type="button">Perfil</button>
+        <a class="logout-button" routerLink="/">Salir</a>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <button class="header-button" type="button">+ Nuevo portfolio</button>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="profile-button" type="button">Perfil</button>
+      <a class="logout-button" routerLink="/">Cerrar sesión</a>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <div class="sidebar-backdrop" [class.sidebar-backdrop-open]="sidebarOpen" (click)="closeSidebar()"></div>
+
+    <aside class="dashboard-sidebar" [class.dashboard-sidebar-open]="sidebarOpen">
+      <div class="sidebar-heading">
+        <p class="header-kicker">Dashboard</p>
+        <button class="sidebar-close" type="button" aria-label="Cerrar navegación" (click)="closeSidebar()">×</button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Dashboard navigation">
+        <a class="nav-item nav-item-active" href="javascript:void(0)" (click)="closeSidebar()">Resumen</a>
+        <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Portfolios</a>
+        <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Transacciones</a>
+        <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Rendimiento</a>
+        <a class="nav-item nav-item-logout" routerLink="/" (click)="closeSidebar()">Cerrar sesión</a>
+      </nav>
+    </aside>
+
+    <section class="dashboard-content">
+      <section class="hero-panel">
+        <div>
+          <p class="header-kicker">Dashboard</p>
+          <h1>Bienvenido de nuevo, Cristian.</h1>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        @for (card of summaryCards; track card.label) {
+          <article class="summary-card" [class.flash-up]="card.flashClass === 'flash-up'" [class.flash-down]="card.flashClass === 'flash-down'">
+            <span class="summary-label">{{ card.label }}</span>
+            <strong class="summary-value" [class]="card.valueClass">{{ card.value }}</strong>
+            <p class="summary-trend" [class]="card.trendClass">{{ card.trend }}</p>
+          </article>
+        }
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel-card portfolio-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Portfolios</p>
+              <h2>Vista general</h2>
+            </div>
+            <button class="panel-link" type="button">Ver todos</button>
+          </div>
+
+          <div class="portfolio-table">
+            @for (portfolio of portfolioRows; track portfolio.name) {
+              <div class="portfolio-row">
+                <div>
+                  <strong>{{ portfolio.name }}</strong>
+                  <p>{{ portfolio.assets }}</p>
+                </div>
+                <div>
+                  <span [class]="portfolio.balanceClass">{{ portfolio.balance }}</span>
+                  <p [class]="portfolio.performanceClass">{{ portfolio.performance }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="panel-card activity-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Actividad reciente</p>
+              <h2>Últimos movimientos</h2>
+            </div>
+          </div>
+
+          <ul class="activity-list">
+            @for (item of activityItems; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </article>
+      </section>
+    </section>
+  </div>
+</main>
