@@ -61,6 +61,41 @@ h2 {
   line-height: 1.55;
 }
 
+.success-panel {
+  display: grid;
+  place-items: center;
+  gap: 0.85rem;
+  min-height: 18rem;
+  margin-top: 1.5rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border: 1px solid rgba(46, 204, 113, 0.18);
+  border-radius: 1.25rem;
+  background: radial-gradient(circle at top, rgba(46, 204, 113, 0.16), rgba(46, 204, 113, 0.04));
+}
+
+.success-panel h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.success-panel p {
+  margin: 0;
+  color: #bdf3d0;
+}
+
+.success-badge {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: rgba(46, 204, 113, 0.18);
+  color: #bdf3d0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
 .register-form {
   margin-top: 1.5rem;
 }

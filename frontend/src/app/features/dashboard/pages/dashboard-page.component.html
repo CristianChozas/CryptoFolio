@@ -22,17 +22,17 @@
 
       <div class="topbar-mobile-actions">
         <button class="profile-button" type="button">Perfil</button>
-        <a class="logout-button" routerLink="/">Salir</a>
+        <button class="logout-button" type="button" (click)="logout()">Salir</button>
       </div>
     </div>
 
     <div class="topbar-center">
-      <button class="header-button" type="button">+ Nuevo portfolio</button>
+      <button class="header-button" type="button" (click)="openNewPortfolio()">+ Nuevo portfolio</button>
     </div>
 
     <div class="topbar-actions">
       <button class="profile-button" type="button">Perfil</button>
-      <a class="logout-button" routerLink="/">Cerrar sesión</a>
+      <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
     </div>
   </header>
 
@@ -50,7 +50,7 @@
         <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Portfolios</a>
         <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Transacciones</a>
         <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Rendimiento</a>
-        <a class="nav-item nav-item-logout" routerLink="/" (click)="closeSidebar()">Cerrar sesión</a>
+        <button class="nav-item nav-item-logout" type="button" (click)="logout()">Cerrar sesión</button>
       </nav>
     </aside>
 
@@ -58,7 +58,7 @@
       <section class="hero-panel">
         <div>
           <p class="header-kicker">Dashboard</p>
-          <h1>Bienvenido de nuevo, Cristian.</h1>
+          <h1>Bienvenido de nuevo, {{ username }}.</h1>
         </div>
       </section>
 

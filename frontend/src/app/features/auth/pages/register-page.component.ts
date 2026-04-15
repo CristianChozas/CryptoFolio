@@ -1,6 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-register-page',
@@ -9,11 +12,16 @@ import { RouterLink } from '@angular/router';
   templateUrl: './register-page.component.html',
   styleUrl: './register-page.component.css'
 })
-export class RegisterPageComponent {
+export class RegisterPageComponent implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   protected submitted = false;
   protected accountCreated = false;
+  protected creatingAccount = false;
+  protected requestError = '';
+  private redirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly registerForm = this.formBuilder.group(
     {
@@ -29,13 +37,32 @@ export class RegisterPageComponent {
   protected submitForm(): void {
     this.submitted = true;
     this.accountCreated = false;
+    this.requestError = '';
     this.registerForm.markAllAsTouched();
 
-    if (this.registerForm.invalid) {
+    if (this.registerForm.invalid || this.creatingAccount) {
       return;
     }
 
-    this.accountCreated = true;
+    this.creatingAccount = true;
+
+    this.authService.register({
+      username: this.registerForm.controls.username.value ?? '',
+      email: this.registerForm.controls.email.value ?? '',
+      password: this.registerForm.controls.password.value ?? ''
+    }).subscribe({
+      next: () => {
+        this.creatingAccount = false;
+        this.accountCreated = true;
+        this.redirectTimeoutId = setTimeout(() => {
+          void this.router.navigate(['/']);
+        }, 2500);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.creatingAccount = false;
+        this.requestError = this.mapRequestError(error);
+      }
+    });
   }
 
   protected showError(controlName: 'username' | 'email' | 'password' | 'confirmPassword' | 'acceptedTerms'): boolean {
@@ -86,5 +113,27 @@ export class RegisterPageComponent {
     }
 
     return password === confirmPassword ? null : { passwordMismatch: true };
+  }
+
+  private mapRequestError(error: HttpErrorResponse): string {
+    if (error.status === 409) {
+      return 'Correo ya existente.';
+    }
+
+    if (error.status === 400) {
+      return 'Revisa los datos enviados.';
+    }
+
+    if (error.status === 0) {
+      return 'No se pudo conectar con el backend.';
+    }
+
+    return 'No se pudo crear la cuenta.';
+  }
+
+  ngOnDestroy(): void {
+    if (this.redirectTimeoutId) {
+      clearTimeout(this.redirectTimeoutId);
+    }
   }
 }

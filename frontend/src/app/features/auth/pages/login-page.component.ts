@@ -1,6 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-login-page',
@@ -12,9 +15,12 @@ import { Router, RouterLink } from '@angular/router';
 export class LoginPageComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   protected submitted = false;
   protected loginReady = false;
+  protected loginInProgress = false;
+  protected requestError = '';
   protected challenge = this.generateChallenge();
 
   protected readonly loginForm = this.formBuilder.group({
@@ -26,9 +32,10 @@ export class LoginPageComponent {
   protected submitForm(): void {
     this.submitted = true;
     this.loginReady = false;
+    this.requestError = '';
     this.loginForm.markAllAsTouched();
 
-    if (this.loginForm.invalid) {
+    if (this.loginForm.invalid || this.loginInProgress) {
       return;
     }
 
@@ -40,8 +47,22 @@ export class LoginPageComponent {
       return;
     }
 
-    this.loginReady = true;
-    void this.router.navigate(['/dashboard']);
+    this.loginInProgress = true;
+
+    this.authService.login({
+      email: this.loginForm.controls.email.value ?? '',
+      password: this.loginForm.controls.password.value ?? ''
+    }).subscribe({
+      next: () => {
+        this.loginInProgress = false;
+        this.loginReady = true;
+        void this.router.navigate(['/dashboard']);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.loginInProgress = false;
+        this.requestError = this.mapRequestError(error);
+      }
+    });
   }
 
   protected refreshChallenge(): void {
@@ -86,5 +107,21 @@ export class LoginPageComponent {
       right,
       answer: left + right
     };
+  }
+
+  private mapRequestError(error: HttpErrorResponse): string {
+    if (error.status === 401) {
+      return 'Credenciales inválidas.';
+    }
+
+    if (error.status === 400) {
+      return 'Revisa los datos enviados.';
+    }
+
+    if (error.status === 0) {
+      return 'No se pudo conectar con el backend.';
+    }
+
+    return 'No se pudo iniciar sesión.';
   }
 }

@@ -1,6 +1,8 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+
+import { AuthService } from '../../../core/auth/auth.service';
 
 interface CoinPriceResponse {
   symbol: string;
@@ -21,7 +23,6 @@ interface SummaryCard {
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [RouterLink],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.css'
 })
@@ -29,11 +30,14 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly ngZone = inject(NgZone);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   private eventSource: EventSource | null = null;
   private readonly flashTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
   protected sidebarOpen = false;
+  protected username = 'Cristian';
 
   protected summaryCards: SummaryCard[] = [
     {
@@ -80,6 +84,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    this.username = this.authService.getUsername() ?? 'Cristian';
     this.fetchPrices();
     this.connectPriceStream();
   }
@@ -107,6 +112,17 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
 
   protected closeSidebar(): void {
     this.sidebarOpen = false;
+  }
+
+  protected openNewPortfolio(): void {
+    this.closeSidebar();
+    void this.router.navigate(['/portfolios/new']);
+  }
+
+  protected logout(): void {
+    this.authService.logout();
+    this.closeSidebar();
+    void this.router.navigate(['/']);
   }
 
   private connectPriceStream(): void {

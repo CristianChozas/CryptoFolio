@@ -232,6 +232,10 @@
   border-radius: 1rem;
   color: #d8dde6;
   text-decoration: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 .nav-item-active,
