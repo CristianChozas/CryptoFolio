@@ -2,9 +2,11 @@ package com.cryptofolio.backend.infrastructure.in.web.controller;
 
 import com.cryptofolio.backend.application.dto.request.CreatePortfolioRequest;
 import com.cryptofolio.backend.application.dto.response.PortfolioResponse;
+import com.cryptofolio.backend.application.dto.response.PortfolioOverviewResponse;
 import com.cryptofolio.backend.application.dto.response.PortfolioSummaryResponse;
 import com.cryptofolio.backend.application.port.in.CreatePortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.DeletePortfolioInputPort;
+import com.cryptofolio.backend.application.port.in.GetPortfolioOverviewInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioSummaryInputPort;
 import com.cryptofolio.backend.application.port.in.ListUserPortfoliosInputPort;
@@ -46,6 +48,7 @@ public class PortfolioController {
     private final UpdatePortfolioInputPort updatePortfolioInputPort;
     private final DeletePortfolioInputPort deletePortfolioInputPort;
     private final GetPortfolioSummaryInputPort getPortfolioSummaryInputPort;
+    private final GetPortfolioOverviewInputPort getPortfolioOverviewInputPort;
     private final AuthenticatedUserResolver authenticatedUserResolver;
 
     public PortfolioController(
@@ -55,6 +58,7 @@ public class PortfolioController {
             UpdatePortfolioInputPort updatePortfolioInputPort,
             DeletePortfolioInputPort deletePortfolioInputPort,
             GetPortfolioSummaryInputPort getPortfolioSummaryInputPort,
+            GetPortfolioOverviewInputPort getPortfolioOverviewInputPort,
             AuthenticatedUserResolver authenticatedUserResolver) {
         this.createPortfolioInputPort = createPortfolioInputPort;
         this.listUserPortfoliosInputPort = listUserPortfoliosInputPort;
@@ -62,6 +66,7 @@ public class PortfolioController {
         this.updatePortfolioInputPort = updatePortfolioInputPort;
         this.deletePortfolioInputPort = deletePortfolioInputPort;
         this.getPortfolioSummaryInputPort = getPortfolioSummaryInputPort;
+        this.getPortfolioOverviewInputPort = getPortfolioOverviewInputPort;
         this.authenticatedUserResolver = authenticatedUserResolver;
     }
 
@@ -92,6 +97,19 @@ public class PortfolioController {
     public ResponseEntity<List<PortfolioResponse>> list(Principal principal) {
         Long userId = authenticatedUserResolver.resolveUserId(principal);
         return ResponseEntity.ok(listUserPortfoliosInputPort.execute(userId));
+    }
+
+    @GetMapping("/overview")
+    @Operation(summary = "Obtener overview de portfolios", description = "Devuelve el resumen agregado del usuario, el contenido actual de cada portfolio y las operaciones recientes.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Overview calculado",
+                    content = @Content(schema = @Schema(implementation = PortfolioOverviewResponse.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o invalido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<PortfolioOverviewResponse> overview(Principal principal) {
+        Long userId = authenticatedUserResolver.resolveUserId(principal);
+        return ResponseEntity.ok(getPortfolioOverviewInputPort.execute(userId));
     }
 
     @GetMapping("/{portfolioId}")

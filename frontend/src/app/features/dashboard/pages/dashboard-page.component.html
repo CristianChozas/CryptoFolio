@@ -46,10 +46,10 @@
       </div>
 
       <nav class="sidebar-nav" aria-label="Dashboard navigation">
-        <a class="nav-item nav-item-active" href="javascript:void(0)" (click)="closeSidebar()">Resumen</a>
-        <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Portfolios</a>
-        <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Transacciones</a>
-        <a class="nav-item" href="javascript:void(0)" (click)="closeSidebar()">Rendimiento</a>
+        <button class="nav-item" type="button" [class.nav-item-active]="activeSidebarSection === 'summary'" (click)="openSummarySection()">Resumen</button>
+        <a class="nav-item" routerLink="/portfolios" (click)="closeSidebar()">Portfolios</a>
+        <button class="nav-item" type="button" (click)="openNewOperation()">Operaciones</button>
+        <button class="nav-item" type="button" (click)="closeSidebar()">Rendimiento</button>
         <button class="nav-item nav-item-logout" type="button" (click)="logout()">Cerrar sesión</button>
       </nav>
     </aside>
@@ -62,7 +62,7 @@
         </div>
       </section>
 
-      <section class="summary-grid">
+      <section id="dashboard-summary-section" class="summary-grid">
         @for (card of summaryCards; track card.label) {
           <article class="summary-card" [class.flash-up]="card.flashClass === 'flash-up'" [class.flash-down]="card.flashClass === 'flash-down'">
             <span class="summary-label">{{ card.label }}</span>
@@ -125,8 +125,19 @@
           </div>
 
           <ul class="activity-list">
-            @for (item of activityItems; track item) {
-              <li>{{ item }}</li>
+            @if (portfoliosLoading) {
+              <li>Cargando operaciones recientes...</li>
+            } @else if (portfoliosError) {
+              <li>No se pudo cargar la actividad reciente.</li>
+            } @else if (!hasRecentOperations) {
+              <li>Todavía no hay operaciones registradas.</li>
+            } @else {
+              @for (operation of recentOperations; track operation.id) {
+                <li>
+                  <strong>{{ formatOperation(operation) }}</strong><br />
+                  <span>{{ formatCurrency(operation.pricePerUnit, 'USD') }} · {{ formatOperationDate(operation.timestamp) }}</span>
+                </li>
+              }
             }
           </ul>
         </article>

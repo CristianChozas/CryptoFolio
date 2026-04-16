@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { timeout } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -27,9 +28,34 @@ interface PortfolioResponse {
   createdAt: string;
 }
 
+interface PortfolioOverviewItemResponse {
+  portfolio: PortfolioResponse;
+}
+
+interface PortfolioOverviewOperationResponse {
+  id: number;
+  portfolioId: number;
+  portfolioName: string;
+  crypto: string;
+  type: 'BUY' | 'SELL';
+  amount: number;
+  pricePerUnit: number;
+  timestamp: string;
+}
+
+interface PortfolioOverviewResponse {
+  totalCurrentValue: number;
+  totalCurrentValueCurrency: string;
+  totalProfitLossAmount: number;
+  totalProfitLossCurrency: string;
+  portfolios: PortfolioOverviewItemResponse[];
+  recentOperations: PortfolioOverviewOperationResponse[];
+}
+
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.css'
 })
@@ -40,19 +66,21 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
+  private readonly EUR_TO_USD = 1.18; // Tasa de conversión EUR a USD
   private eventSource: EventSource | null = null;
   private readonly flashTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
   protected sidebarOpen = false;
+  protected activeSidebarSection: 'summary' = 'summary' as const;
   protected username = 'Cristian';
 
   protected summaryCards: SummaryCard[] = [
     {
       label: 'Balance total',
-      value: '€24,860.42',
-      trend: '+€3,284.10 · +15.2%',
+      value: '—',
+      trend: 'Cargando resumen…',
       valueClass: '',
-      trendClass: 'positive-text',
+      trendClass: '',
       flashClass: ''
     },
     {
@@ -76,16 +104,11 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   protected portfolioRows: PortfolioResponse[] = [];
   protected portfoliosLoading = true;
   protected portfoliosError = '';
-
-  protected readonly activityItems = [
-    'Compra registrada de BTC por €1,250.00',
-    'Venta parcial de SOL con beneficio de +€142.20',
-    'Actualización del resumen diario completada'
-  ];
+  protected recentOperations: PortfolioOverviewOperationResponse[] = [];
 
   ngOnInit(): void {
     this.username = this.authService.getUsername() ?? 'Cristian';
-    this.fetchPortfolios();
+    this.fetchOverview();
     this.fetchPrices();
     this.connectPriceStream();
   }
@@ -115,6 +138,12 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     this.sidebarOpen = false;
   }
 
+  protected openSummarySection(): void {
+    this.activeSidebarSection = 'summary' as const;
+    this.closeSidebar();
+    this.scrollToSection('dashboard-summary-section');
+  }
+
   protected openNewPortfolio(): void {
     this.closeSidebar();
     void this.router.navigate(['/portfolios/new']);
@@ -129,10 +158,49 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     return this.portfolioRows.length > 0;
   }
 
+  protected get hasRecentOperations(): boolean {
+    return this.recentOperations.length > 0;
+  }
+
   protected logout(): void {
     this.authService.logout();
     this.closeSidebar();
     void this.router.navigate(['/']);
+  }
+
+  protected formatCurrency(value: number | null | undefined, currency = 'USD'): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2
+    }).format(value ?? 0);
+  }
+
+  protected formatPortfolioDate(value: string): string {
+    return new Date(value).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  protected formatOperation(operation: PortfolioOverviewOperationResponse): string {
+    const typeLabel = operation.type === 'BUY' ? 'Compra' : 'Venta';
+    const amount = Number(operation.amount ?? 0).toLocaleString('es-ES', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 8
+    });
+
+    return `${typeLabel} de ${operation.crypto} · ${amount} en ${operation.portfolioName}`;
+  }
+
+  protected formatOperationDate(value: string): string {
+    return new Date(value).toLocaleString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   private connectPriceStream(): void {
@@ -162,28 +230,59 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  private fetchPortfolios(): void {
+  private fetchOverview(): void {
     this.portfoliosLoading = true;
     this.portfoliosError = '';
+    this.recentOperations = [];
 
-    this.http.get<PortfolioResponse[]>('/api/v1/portfolios').subscribe({
-      next: (portfolios) => {
-        this.portfolioRows = portfolios;
+    this.http.get<PortfolioOverviewResponse>('/api/v1/portfolios/overview').pipe(timeout(8000)).subscribe({
+      next: (overview) => {
+        this.portfolioRows = overview.portfolios.map((item) => item.portfolio);
+        this.recentOperations = overview.recentOperations;
+        this.summaryCards = [
+          {
+            label: 'Balance total',
+            value: this.formatCurrency(overview.totalCurrentValue, overview.totalCurrentValueCurrency || 'USD'),
+            trend: `${overview.totalProfitLossAmount >= 0 ? '+' : ''}${this.formatCurrency(overview.totalProfitLossAmount, overview.totalProfitLossCurrency || 'USD')} P/L`,
+            valueClass: '',
+            trendClass: overview.totalProfitLossAmount >= 0 ? 'positive-text' : 'negative-text',
+            flashClass: ''
+          },
+          this.summaryCards[1],
+          this.summaryCards[2]
+        ];
         this.portfoliosLoading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('[CryptoFolio][Dashboard] overview:error', error);
         this.portfolioRows = [];
+        this.recentOperations = [];
         this.portfoliosLoading = false;
-        this.portfoliosError = 'No se pudieron cargar tus portfolios.';
+        this.portfoliosError = error?.error?.message || 'No se pudo cargar el resumen real del dashboard.';
+        this.summaryCards = [
+          {
+            label: 'Balance total',
+            value: 'No disponible',
+            trend: 'No se pudo cargar el resumen',
+            valueClass: 'negative-text',
+            trendClass: 'negative-text',
+            flashClass: ''
+          },
+          this.summaryCards[1],
+          this.summaryCards[2]
+        ];
       }
     });
   }
 
-  protected formatPortfolioDate(value: string): string {
-    return new Date(value).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
+  private scrollToSection(sectionId: string): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
     });
   }
 
@@ -208,9 +307,9 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   }
 
   private buildPriceCard(coin: CoinPriceResponse, currentCard: SummaryCard): SummaryCard {
-    const nextValue = `€${this.formatCoinPrice(coin)}`;
-
-    const flashClass = this.resolveFlashClass(currentCard.value, coin.eurPrice, coin.symbol);
+    const nextValue = `$${this.formatCoinPrice(coin)}`;
+    const usdPrice = coin.eurPrice * this.EUR_TO_USD;
+    const flashClass = this.resolveFlashClass(currentCard.value, usdPrice, coin.symbol);
 
     return {
       label: coin.name,
@@ -223,21 +322,24 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   }
 
   private formatCoinPrice(coin: CoinPriceResponse): string {
-    return coin.eurPrice.toLocaleString('es-ES', {
+    const usdPrice = coin.eurPrice * this.EUR_TO_USD;
+    return usdPrice.toLocaleString('es-ES', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
   }
 
   private resolveFlashClass(previousValue: string, nextPrice: number, symbol: string): string {
-    const normalized = previousValue.replace('€', '').replace(/\./g, '').replace(',', '.');
+    const normalized = previousValue.replaceAll('$', '').replaceAll('.', '').replaceAll(',', '.');
     const previousPrice = Number(normalized);
 
     if (!Number.isFinite(previousPrice) || previousPrice === 0) {
       return '';
     }
 
-    const flashClass = nextPrice > previousPrice ? 'flash-up' : nextPrice < previousPrice ? 'flash-down' : '';
+    const isUp = nextPrice > previousPrice;
+    const isDown = nextPrice < previousPrice;
+    const flashClass = isUp ? 'flash-up' : isDown ? 'flash-down' : '';
 
     if (!flashClass) {
       return '';
@@ -248,7 +350,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
       clearTimeout(existingTimeout);
     }
 
-    const timeout = setTimeout(() => {
+    const timeoutRef = setTimeout(() => {
       const nextCards = [...this.summaryCards];
       const index = symbol === 'BTC' ? 1 : 2;
       nextCards[index] = {
@@ -259,7 +361,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
       this.changeDetectorRef.detectChanges();
     }, 900);
 
-    this.flashTimeouts.set(symbol, timeout);
+    this.flashTimeouts.set(symbol, timeoutRef);
 
     return flashClass;
   }

@@ -50,7 +50,7 @@ public class PortfolioCalculator {
             }
         }
 
-        BigDecimal currentPortfolioValue = calculateCurrentValue(calculateBalance(nonNullTransactions), nonNullCurrentPrices);
+        BigDecimal currentPortfolioValue = calculateCurrentValue(nonNullTransactions, nonNullCurrentPrices);
         BigDecimal profitLossAmount = currentPortfolioValue
                 .add(totalSellProceeds)
                 .subtract(totalBuyCost);
@@ -76,6 +76,13 @@ public class PortfolioCalculator {
                 .divide(totalBuyCost, 6, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100"))
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculateCurrentValue(List<Transaction> transactions, Map<Crypto, BigDecimal> currentPrices) {
+        List<Transaction> nonNullTransactions = requireNonNull(transactions, "transactions");
+        Map<Crypto, BigDecimal> nonNullCurrentPrices = requireNonNull(currentPrices, "currentPrices");
+
+        return calculateCurrentValue(calculateBalance(nonNullTransactions), nonNullCurrentPrices);
     }
 
     private BigDecimal calculateCurrentValue(Map<Crypto, BigDecimal> balanceByCrypto, Map<Crypto, BigDecimal> currentPrices) {

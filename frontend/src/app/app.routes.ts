@@ -19,6 +19,14 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'portfolios',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/portfolios/pages/portfolio-overview-page.component').then(
+        (module) => module.PortfolioOverviewPageComponent
+      )
+  },
+  {
     path: 'portfolios/new',
     canActivate: [authGuard],
     loadComponent: () =>

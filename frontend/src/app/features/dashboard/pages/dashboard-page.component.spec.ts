@@ -16,6 +16,7 @@ describe('DashboardPageComponent', () => {
     const fixture = TestBed.createComponent(DashboardPageComponent);
     fixture.detectChanges();
 
+    httpTestingController.expectOne('/api/v1/portfolios/overview');
     httpTestingController.expectOne('/api/v1/prices');
 
     const compiled = fixture.nativeElement as HTMLElement;
