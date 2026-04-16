@@ -1,5 +1,6 @@
 package com.cryptofolio.backend.infrastructure.in.web.controller;
 
+import com.cryptofolio.backend.infrastructure.external.LiveCoinPrice;
 import com.cryptofolio.backend.infrastructure.external.LivePriceService;
 import com.cryptofolio.backend.infrastructure.in.web.response.CoinPriceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,9 @@ public class PriceController {
 
     @GetMapping
     public List<CoinPriceResponse> getLivePrices() {
-        return livePriceService.getLivePrices();
+        return livePriceService.getLivePrices().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @GetMapping(path = "/stream", produces = "text/event-stream")
@@ -36,7 +39,9 @@ public class PriceController {
             try {
                 emitter.send(SseEmitter.event()
                         .name("prices")
-                        .data(livePriceService.getLivePrices()));
+                        .data(livePriceService.getLivePrices().stream()
+                                .map(this::toResponse)
+                                .toList()));
             } catch (Exception exception) {
                 emitter.complete();
             }
@@ -53,5 +58,13 @@ public class PriceController {
         emitter.onError(error -> executor.shutdown());
 
         return emitter;
+    }
+
+    private CoinPriceResponse toResponse(LiveCoinPrice price) {
+        return new CoinPriceResponse(
+                price.symbol(),
+                price.name(),
+                price.eurPrice(),
+                price.change24hPercent());
     }
 }

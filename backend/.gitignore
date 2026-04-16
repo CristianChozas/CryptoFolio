@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Accidental generated temp directory
+${env.TEMP}/

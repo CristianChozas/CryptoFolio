@@ -1,6 +1,4 @@
 package com.cryptofolio.backend.infrastructure.external;
-
-import com.cryptofolio.backend.infrastructure.in.web.response.CoinPriceResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -34,21 +32,24 @@ public class LivePriceService {
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
     private final URI streamUri;
+    private final boolean streamEnabled;
 
-    private final AtomicReference<List<CoinPriceResponse>> cachedPrices = new AtomicReference<>(List.of());
-    private final Map<String, CoinPriceResponse> pricesBySymbol = new ConcurrentHashMap<>();
+    private final AtomicReference<List<LiveCoinPrice>> cachedPrices = new AtomicReference<>(List.of());
+    private final Map<String, LiveCoinPrice> pricesBySymbol = new ConcurrentHashMap<>();
 
     private volatile WebSocket webSocket;
     private volatile boolean connecting;
 
     public LivePriceService(
             ObjectMapper objectMapper,
-            @Value("${binance.ws-url:wss://stream.binance.com:9443/stream?streams=btceur@ticker/etheur@ticker}") String streamUrl) {
+            @Value("${binance.ws-url:wss://stream.binance.com:9443/stream?streams=btceur@ticker/etheur@ticker}") String streamUrl,
+            @Value("${binance.stream-enabled:true}") boolean streamEnabled) {
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(CONNECT_TIMEOUT)
                 .build();
         this.streamUri = URI.create(streamUrl);
+        this.streamEnabled = streamEnabled;
     }
 
     @PostConstruct
@@ -68,6 +69,10 @@ public class LivePriceService {
 
     @Scheduled(fixedDelay = 5_000)
     public void ensureConnected() {
+        if (!streamEnabled) {
+            return;
+        }
+
         if (webSocket != null || connecting) {
             return;
         }
@@ -90,7 +95,7 @@ public class LivePriceService {
                 });
     }
 
-    public List<CoinPriceResponse> getLivePrices() {
+    public List<LiveCoinPrice> getLivePrices() {
         return cachedPrices.get();
     }
 
@@ -103,17 +108,16 @@ public class LivePriceService {
         BigDecimal eurPrice = asBigDecimal(payload.path("c").asText());
         BigDecimal change24hPercent = asBigDecimal(payload.path("P").asText());
 
-        CoinPriceResponse response = new CoinPriceResponse(
+        LiveCoinPrice response = new LiveCoinPrice(
                 BTC_SYMBOL.equals(symbol) ? "BTC" : "ETH",
                 BTC_SYMBOL.equals(symbol) ? "Bitcoin" : "Ethereum",
                 eurPrice,
-                change24hPercent
-        );
+                change24hPercent);
 
         pricesBySymbol.put(symbol, response);
 
-        CoinPriceResponse btc = pricesBySymbol.get(BTC_SYMBOL);
-        CoinPriceResponse eth = pricesBySymbol.get(ETH_SYMBOL);
+        LiveCoinPrice btc = pricesBySymbol.get(BTC_SYMBOL);
+        LiveCoinPrice eth = pricesBySymbol.get(ETH_SYMBOL);
 
         if (btc != null && eth != null) {
             cachedPrices.set(List.of(btc, eth));

@@ -61,7 +61,6 @@ export class NewTransactionPageComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
-    console.info('[CryptoFolio][NewOperation] ngOnInit');
     await this.loadPortfolios();
   }
 
@@ -97,7 +96,6 @@ export class NewTransactionPageComponent implements OnInit {
   }
 
   protected async retryLoadPortfolios(): Promise<void> {
-    console.info('[CryptoFolio][NewOperation] retry portfolios');
     await this.loadPortfolios();
   }
 
@@ -200,7 +198,6 @@ export class NewTransactionPageComponent implements OnInit {
   }
 
   private async loadPortfolios(): Promise<void> {
-    console.info('[CryptoFolio][NewOperation] load portfolios:start');
     this.loadingPortfolios = true;
     this.portfolioLoadError = '';
     this.portfolios = [];
@@ -212,10 +209,6 @@ export class NewTransactionPageComponent implements OnInit {
 
       this.portfolios = portfolios;
       this.selectedPortfolioId = portfolios[0]?.id ?? null;
-      console.info('[CryptoFolio][NewOperation] load portfolios:success', {
-        count: portfolios.length,
-        selectedPortfolioId: this.selectedPortfolioId
-      });
     } catch {
       this.portfolioLoadError = 'No se pudieron cargar tus portfolios.';
       this.selectedPortfolioId = null;
@@ -223,26 +216,16 @@ export class NewTransactionPageComponent implements OnInit {
     } finally {
       this.loadingPortfolios = false;
       this.changeDetectorRef.detectChanges();
-      console.info('[CryptoFolio][NewOperation] load portfolios:end', {
-        loadingPortfolios: this.loadingPortfolios,
-        hasPortfolios: this.portfolios.length > 0,
-        portfolioLoadError: this.portfolioLoadError
-      });
     }
   }
 
   private async loadPortfolioSummary(portfolioId: number): Promise<void> {
-    console.info('[CryptoFolio][NewOperation] load summary:start', { portfolioId });
     this.loadingSummary = true;
 
     try {
       this.selectedSummary = await firstValueFrom(
         this.http.get<PortfolioSummaryResponse>(`/api/v1/portfolios/${portfolioId}/summary`).pipe(timeout(8000))
       );
-      console.info('[CryptoFolio][NewOperation] load summary:success', {
-        portfolioId,
-        portfolioName: this.selectedSummary.portfolio.name
-      });
     } catch {
       this.selectedSummary = null;
       this.requestError = 'No se pudo cargar el resumen del portfolio seleccionado.';
@@ -250,11 +233,6 @@ export class NewTransactionPageComponent implements OnInit {
     } finally {
       this.loadingSummary = false;
       this.changeDetectorRef.detectChanges();
-      console.info('[CryptoFolio][NewOperation] load summary:end', {
-        portfolioId,
-        loadingSummary: this.loadingSummary,
-        hasSummary: !!this.selectedSummary
-      });
     }
   }
 

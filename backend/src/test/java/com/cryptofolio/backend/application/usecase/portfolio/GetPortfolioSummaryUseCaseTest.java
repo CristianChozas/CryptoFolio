@@ -103,4 +103,33 @@ class GetPortfolioSummaryUseCaseTest {
         assertThat(response.getRoiPercentage()).isEqualByComparingTo("0");
         verify(cryptoPriceProvider, never()).getCurrentPrice(org.mockito.ArgumentMatchers.any());
     }
+
+    @Test
+    void shouldCalculateCurrentValueFromTransactions() {
+        Transaction transaction = new Transaction(99L, 15L, "BTC", TransactionType.BUY,
+                new BigDecimal("0.10000000"), new BigDecimal("65000.00"), Instant.parse("2026-04-05T18:00:00Z"));
+
+        BigDecimal currentValue = portfolioCalculator.calculateCurrentValue(
+                List.of(transaction),
+                Map.of(Crypto.from("BTC"), new BigDecimal("70000.00")));
+
+        assertThat(currentValue).isEqualByComparingTo("7000.00000000");
+    }
+
+    @Test
+    void shouldReturnSummaryWhenPriceProviderFailsForCrypto() {
+        Portfolio portfolio = new Portfolio(15L, "Main Portfolio", "Long term", 7L,
+                Instant.parse("2026-04-05T17:00:00Z"));
+        Transaction transaction = new Transaction(99L, 15L, "BTC", TransactionType.BUY,
+                new BigDecimal("0.10000000"), new BigDecimal("65000.00"), Instant.parse("2026-04-05T18:00:00Z"));
+
+        when(portfolioRepository.findById(15L)).thenReturn(Optional.of(portfolio));
+        when(transactionRepository.findByPortfolioId(15L)).thenReturn(List.of(transaction));
+        when(cryptoPriceProvider.getCurrentPrice(Crypto.from("BTC"))).thenThrow(new IllegalStateException("price unavailable"));
+
+        PortfolioSummaryResponse response = useCase.execute(7L, 15L);
+
+        assertThat(response.getPortfolio().getId()).isEqualTo(15L);
+        assertThat(response.getProfitLossAmount()).isEqualByComparingTo("-6500.0000000000");
+    }
 }

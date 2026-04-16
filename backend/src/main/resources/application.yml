@@ -55,6 +55,7 @@ jwt:
 
 binance:
   ws-url: ${BINANCE_WS_URL:wss://stream.binance.com:9443/stream?streams=btceur@ticker/etheur@ticker}
+  stream-enabled: true
 
 ---
 spring:
@@ -85,6 +86,7 @@ jwt:
 
 binance:
   ws-url: wss://stream.binance.com:9443/stream?streams=btceur@ticker/etheur@ticker
+  stream-enabled: false
 
 ---
 spring:
@@ -120,3 +122,4 @@ jwt:
 
 binance:
   ws-url: ${BINANCE_WS_URL:wss://stream.binance.com:9443/stream?streams=btceur@ticker/etheur@ticker}
+  stream-enabled: true

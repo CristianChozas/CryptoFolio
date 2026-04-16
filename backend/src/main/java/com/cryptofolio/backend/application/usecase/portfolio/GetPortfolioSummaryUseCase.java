@@ -13,6 +13,8 @@ import com.cryptofolio.backend.domain.model.Transaction;
 import com.cryptofolio.backend.domain.service.PortfolioCalculator;
 import com.cryptofolio.backend.domain.valueobject.Crypto;
 import com.cryptofolio.backend.domain.valueobject.Money;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class GetPortfolioSummaryUseCase implements GetPortfolioSummaryInputPort {
+
+    private static final Logger log = LoggerFactory.getLogger(GetPortfolioSummaryUseCase.class);
 
     private final PortfolioRepository portfolioRepository;
     private final TransactionRepository transactionRepository;
@@ -65,7 +69,12 @@ public class GetPortfolioSummaryUseCase implements GetPortfolioSummaryInputPort 
     private Map<Crypto, BigDecimal> resolveCurrentPrices(Iterable<Crypto> cryptos) {
         Map<Crypto, BigDecimal> currentPrices = new HashMap<>();
         for (Crypto crypto : cryptos) {
-            currentPrices.put(crypto, cryptoPriceProvider.getCurrentPrice(crypto));
+            try {
+                currentPrices.put(crypto, cryptoPriceProvider.getCurrentPrice(crypto));
+            } catch (RuntimeException exception) {
+                log.warn("[PortfolioSummary] fallback price=0 for crypto={} reason={}", crypto.getSymbol(), exception.getMessage());
+                currentPrices.put(crypto, BigDecimal.ZERO);
+            }
         }
         return currentPrices;
     }
