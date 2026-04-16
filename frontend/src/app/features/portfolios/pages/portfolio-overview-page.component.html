@@ -1,0 +1,100 @@
+<main class="portfolio-overview-page">
+  <section class="portfolio-overview-shell">
+    <div class="portfolio-overview-topbar">
+      <a class="back-link" routerLink="/dashboard">← Volver al dashboard</a>
+      <a class="primary-link" routerLink="/operations/new">+ Nueva operación</a>
+    </div>
+
+    <header class="page-header">
+      <p class="eyebrow">Portfolios</p>
+      <h1>Resumen real de portfolios</h1>
+      <p>Vista agregada del valor actual, profit/loss y contenido de cada portfolio.</p>
+    </header>
+
+    @if (loading) {
+      <section class="info-panel">
+        <strong>Cargando portfolios...</strong>
+        <p>Estamos preparando el resumen consolidado.</p>
+      </section>
+    } @else if (requestError) {
+      <section class="error-panel">
+        <strong>No disponible</strong>
+        <p>{{ requestError }}</p>
+        <button class="secondary-button" type="button" (click)="retry()">Reintentar</button>
+      </section>
+    } @else if (!hasPortfolios) {
+      <section class="info-panel">
+        <strong>Aún no tienes portfolios</strong>
+        <p>Crea tu primer portfolio y registra operaciones para poblar esta vista.</p>
+        <a class="primary-link" routerLink="/portfolios/new">Crear portfolio</a>
+      </section>
+    } @else {
+      <section class="overview-cards">
+        <article class="metric-card">
+          <span>Total portfolios</span>
+          <strong>{{ overview?.portfolioCount }}</strong>
+        </article>
+        <article class="metric-card">
+          <span>Balance total</span>
+          <strong>{{ formatCurrency(overview?.totalCurrentValue, overview?.totalCurrentValueCurrency || 'USD') }}</strong>
+        </article>
+        <article class="metric-card">
+          <span>Profit / Loss</span>
+          <strong [class.positive-text]="(overview?.totalProfitLossAmount ?? 0) >= 0" [class.negative-text]="(overview?.totalProfitLossAmount ?? 0) < 0">
+            {{ formatCurrency(overview?.totalProfitLossAmount, overview?.totalProfitLossCurrency || 'USD') }}
+          </strong>
+        </article>
+      </section>
+
+      <section class="portfolio-grid">
+        @for (item of overview?.portfolios ?? []; track item.portfolio.id) {
+          <article class="portfolio-card">
+            <div class="portfolio-card-header">
+              <div>
+                <p class="eyebrow">#{{ item.portfolio.id }}</p>
+                <h2>{{ item.portfolio.name }}</h2>
+                <p>{{ item.portfolio.description || 'Sin descripción todavía.' }}</p>
+              </div>
+              <span class="created-at">{{ formatDate(item.portfolio.createdAt) }}</span>
+            </div>
+
+            <div class="portfolio-metrics">
+              <article>
+                <span>Valor actual</span>
+                <strong>{{ formatCurrency(item.currentValue, item.currentValueCurrency || 'USD') }}</strong>
+              </article>
+              <article>
+                <span>Profit / Loss</span>
+                <strong [class.positive-text]="item.profitLossAmount >= 0" [class.negative-text]="item.profitLossAmount < 0">
+                  {{ formatCurrency(item.profitLossAmount, item.profitLossCurrency || 'USD') }}
+                </strong>
+              </article>
+              <article>
+                <span>ROI</span>
+                <strong [class.positive-text]="item.roiPercentage >= 0" [class.negative-text]="item.roiPercentage < 0">
+                  {{ formatPercentage(item.roiPercentage) }}
+                </strong>
+              </article>
+            </div>
+
+            <div class="holdings-block">
+              <p class="holdings-title">Contenido actual</p>
+              @if (balanceEntries(item.balance).length === 0) {
+                <p class="muted-copy">Todavía no hay posiciones abiertas en este portfolio.</p>
+              } @else {
+                <div class="holdings-list">
+                  @for (entry of balanceEntries(item.balance); track entry[0]) {
+                    <div class="holding-row">
+                      <span>{{ entry[0] }}</span>
+                      <strong>{{ entry[1] }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </section>
+</main>

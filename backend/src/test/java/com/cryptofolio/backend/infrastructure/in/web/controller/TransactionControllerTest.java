@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TransactionController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@SuppressWarnings("null")
 class TransactionControllerTest {
 
     private static final Principal PRINCIPAL = () -> "cristian@example.com";

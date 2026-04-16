@@ -34,3 +34,5 @@ AGENTS.md
 
 # Defensive ignore for mis-resolved temp output
 backend/Users/
+
+.atl/

@@ -5,6 +5,7 @@ import com.cryptofolio.backend.domain.valueobject.Crypto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -12,6 +13,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class CoinGeckoPriceProvider implements CryptoPriceProvider {
@@ -36,23 +38,34 @@ public class CoinGeckoPriceProvider implements CryptoPriceProvider {
     }
 
     @Override
+    @SuppressWarnings("null")
     public BigDecimal getCurrentPrice(Crypto crypto) {
         String coinId = resolveCoinId(crypto);
         String url = baseUrl + "/simple/price?ids={coinId}&vs_currencies=usd";
+        HttpMethod httpMethod = HttpMethod.GET;
+        Map<String, String> uriVariables = Map.of("coinId", coinId);
 
         ResponseEntity<Map<String, Map<String, BigDecimal>>> response = restTemplate.exchange(
                 url,
-                org.springframework.http.HttpMethod.GET,
+                httpMethod,
                 null,
                 RESPONSE_TYPE,
-                Map.of("coinId", coinId));
+                uriVariables);
 
-        Map<String, Map<String, BigDecimal>> body = response.getBody();
-        if (body == null || !body.containsKey(coinId) || body.get(coinId).get("usd") == null) {
+        Map<String, Map<String, BigDecimal>> body = Objects.requireNonNull(
+                response.getBody(),
+                "CoinGecko response body cannot be null");
+        Map<String, BigDecimal> coinData = body.get(coinId);
+        if (coinData == null) {
             throw new IllegalStateException("CoinGecko price not available for crypto: " + crypto.getSymbol());
         }
 
-        return body.get(coinId).get("usd");
+        BigDecimal usdPrice = coinData.get("usd");
+        if (usdPrice == null) {
+            throw new IllegalStateException("CoinGecko price not available for crypto: " + crypto.getSymbol());
+        }
+
+        return usdPrice;
     }
 
     private String resolveCoinId(Crypto crypto) {

@@ -56,9 +56,9 @@ public class JwtTokenProvider implements AuthTokenGenerator {
         }
     }
 
-    public Long getUserIdFromToken(String token) {
+    public long getUserIdFromToken(String token) {
         Claims claims = parseClaims(token);
-        return Long.valueOf(claims.getSubject());
+        return Long.parseLong(claims.getSubject());
     }
 
     private Claims parseClaims(String token) {

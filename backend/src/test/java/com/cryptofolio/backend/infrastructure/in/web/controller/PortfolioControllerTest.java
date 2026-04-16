@@ -1,10 +1,14 @@
 package com.cryptofolio.backend.infrastructure.in.web.controller;
 
 import com.cryptofolio.backend.application.dto.request.CreatePortfolioRequest;
+import com.cryptofolio.backend.application.dto.response.PortfolioOverviewItemResponse;
+import com.cryptofolio.backend.application.dto.response.PortfolioOverviewOperationResponse;
+import com.cryptofolio.backend.application.dto.response.PortfolioOverviewResponse;
 import com.cryptofolio.backend.application.dto.response.PortfolioResponse;
 import com.cryptofolio.backend.application.dto.response.PortfolioSummaryResponse;
 import com.cryptofolio.backend.application.port.in.CreatePortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.DeletePortfolioInputPort;
+import com.cryptofolio.backend.application.port.in.GetPortfolioOverviewInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioSummaryInputPort;
 import com.cryptofolio.backend.application.port.in.ListUserPortfoliosInputPort;
@@ -38,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PortfolioController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@SuppressWarnings("null")
 class PortfolioControllerTest {
 
     private static final Principal PRINCIPAL = () -> "cristian@example.com";
@@ -62,6 +67,9 @@ class PortfolioControllerTest {
 
     @MockitoBean
     private GetPortfolioSummaryInputPort getPortfolioSummaryInputPort;
+
+    @MockitoBean
+    private GetPortfolioOverviewInputPort getPortfolioOverviewInputPort;
 
     @MockitoBean
     private AuthenticatedUserResolver authenticatedUserResolver;
@@ -155,6 +163,40 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.portfolio.id").value(10))
                 .andExpect(jsonPath("$.balance.BTC").value(0.50000000))
                 .andExpect(jsonPath("$.profitLossCurrency").value("USD"));
+    }
+
+    @Test
+    void shouldGetPortfolioOverview() throws Exception {
+        when(authenticatedUserResolver.resolveUserId(any())).thenReturn(1L);
+        when(getPortfolioOverviewInputPort.execute(1L)).thenReturn(new PortfolioOverviewResponse(
+                1,
+                new BigDecimal("1250.50"),
+                "USD",
+                new BigDecimal("250.25"),
+                "USD",
+                List.of(new PortfolioOverviewItemResponse(
+                        new PortfolioResponse(10L, "Main", "Long term", Instant.parse("2026-04-06T20:00:00Z")),
+                        Map.of("BTC", new BigDecimal("0.50000000")),
+                        new BigDecimal("1250.50"),
+                        "USD",
+                        new BigDecimal("250.25"),
+                        "USD",
+                        new BigDecimal("8.25"))),
+                List.of(new PortfolioOverviewOperationResponse(
+                        77L,
+                        10L,
+                        "Main",
+                        "BTC",
+                        "BUY",
+                        new BigDecimal("0.10000000"),
+                        new BigDecimal("65000.00"),
+                        Instant.parse("2026-04-06T21:00:00Z")))));
+
+        mockMvc.perform(get("/api/v1/portfolios/overview").principal(PRINCIPAL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.portfolioCount").value(1))
+                .andExpect(jsonPath("$.portfolios[0].portfolio.id").value(10))
+                .andExpect(jsonPath("$.recentOperations[0].portfolioName").value("Main"));
     }
 
     @Test

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -29,9 +30,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             JwtTokenProvider jwtTokenProvider,
             UserDetailsServiceImpl userDetailsService,
             JpaUserRepository jpaUserRepository) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = userDetailsService;
-        this.jpaUserRepository = jpaUserRepository;
+        this.jwtTokenProvider = Objects.requireNonNull(jwtTokenProvider, "jwtTokenProvider cannot be null");
+        this.userDetailsService = Objects.requireNonNull(userDetailsService, "userDetailsService cannot be null");
+        this.jpaUserRepository = Objects.requireNonNull(jpaUserRepository, "jpaUserRepository cannot be null");
     }
 
     @Override
@@ -47,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authorizationHeader.substring(BEARER_PREFIX.length());
 
         if (jwtTokenProvider.validateToken(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Long userId = jwtTokenProvider.getUserIdFromToken(token);
+            long userId = jwtTokenProvider.getUserIdFromToken(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(resolveEmail(userId));
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
@@ -62,9 +63,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String resolveEmail(Long userId) {
+    private String resolveEmail(long userId) {
         UserEntity userEntity = jpaUserRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found for id: " + userId));
-        return userEntity.getEmail();
+        return Objects.requireNonNull(userEntity.getEmail(), "user email cannot be null");
     }
 }

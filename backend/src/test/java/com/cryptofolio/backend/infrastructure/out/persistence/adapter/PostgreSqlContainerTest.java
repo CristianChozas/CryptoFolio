@@ -10,6 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 abstract class PostgreSqlContainerTest {
 
     @Container
+    @SuppressWarnings("resource")
     private static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER = new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("cryptofolio_test")
             .withUsername("postgres")

@@ -1,0 +1,52 @@
+<main class="new-portfolio-page">
+  <section class="new-portfolio-shell">
+    <div class="new-portfolio-topbar">
+      <a class="back-link" routerLink="/dashboard">← Volver al dashboard</a>
+    </div>
+
+    <article class="new-portfolio-card">
+      <header class="card-header">
+        <p class="eyebrow">#606 New Portfolio</p>
+        <h2>Crea un nuevo portfolio</h2>
+        <p>Define el nombre y una descripción opcional para empezar a organizar tus inversiones.</p>
+      </header>
+
+      @if (successMessage) {
+        <div class="success-banner" role="status">
+          {{ successMessage }}
+        </div>
+      }
+
+      @if (requestError) {
+        <div class="error-banner" role="alert">
+          {{ requestError }}
+        </div>
+      }
+
+      <form class="new-portfolio-form" [formGroup]="portfolioForm" (ngSubmit)="submitForm()" novalidate>
+        <div class="field-group">
+          <label for="name">Nombre del portfolio</label>
+          <input id="name" type="text" formControlName="name" placeholder="Ej. Core Holdings" maxlength="100" />
+          @if (showError('name')) {
+            <p class="field-error">{{ getControlError('name') }}</p>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="description">Descripción</label>
+          <textarea id="description" rows="5" formControlName="description" placeholder="Ej. Portfolio principal para BTC y ETH a largo plazo" maxlength="255"></textarea>
+          @if (showError('description')) {
+            <p class="field-error">{{ getControlError('description') }}</p>
+          }
+        </div>
+
+        <div class="action-row">
+          <a class="secondary-button" routerLink="/dashboard">Cancelar</a>
+          <button class="submit-button" type="submit" [disabled]="creating">
+            {{ creating ? 'Creando...' : 'Crear portfolio' }}
+          </button>
+        </div>
+      </form>
+    </article>
+  </section>
+</main>

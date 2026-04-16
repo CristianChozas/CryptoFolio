@@ -1,0 +1,147 @@
+<main class="dashboard-page">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir navegación del dashboard"
+        [attr.aria-expanded]="sidebarOpen"
+        (click)="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="topbar-brand">
+        <span class="brand-badge">CF</span>
+        <div>
+          <p class="brand-name">CryptoFolio</p>
+          <p class="brand-caption">Workspace</p>
+        </div>
+      </div>
+
+      <div class="topbar-mobile-actions">
+        <button class="profile-button" type="button">Perfil</button>
+        <button class="logout-button" type="button" (click)="logout()">Salir</button>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <button class="header-button" type="button" (click)="openNewOperation()">+ Nueva operación</button>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="profile-button" type="button">Perfil</button>
+      <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <div class="sidebar-backdrop" [class.sidebar-backdrop-open]="sidebarOpen" (click)="closeSidebar()"></div>
+
+    <aside class="dashboard-sidebar" [class.dashboard-sidebar-open]="sidebarOpen">
+      <div class="sidebar-heading">
+        <p class="header-kicker">Dashboard</p>
+        <button class="sidebar-close" type="button" aria-label="Cerrar navegación" (click)="closeSidebar()">×</button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Dashboard navigation">
+        <button class="nav-item" type="button" [class.nav-item-active]="activeSidebarSection === 'summary'" (click)="openSummarySection()">Resumen</button>
+        <a class="nav-item" routerLink="/portfolios" (click)="closeSidebar()">Portfolios</a>
+        <button class="nav-item" type="button" (click)="openNewOperation()">Operaciones</button>
+        <button class="nav-item" type="button" (click)="closeSidebar()">Rendimiento</button>
+        <button class="nav-item nav-item-logout" type="button" (click)="logout()">Cerrar sesión</button>
+      </nav>
+    </aside>
+
+    <section class="dashboard-content">
+      <section class="hero-panel">
+        <div>
+          <p class="header-kicker">Dashboard</p>
+          <h1>Bienvenido de nuevo, {{ username }}.</h1>
+        </div>
+      </section>
+
+      <section id="dashboard-summary-section" class="summary-grid">
+        @for (card of summaryCards; track card.label) {
+          <article class="summary-card" [class.flash-up]="card.flashClass === 'flash-up'" [class.flash-down]="card.flashClass === 'flash-down'">
+            <span class="summary-label">{{ card.label }}</span>
+            <strong class="summary-value" [class]="card.valueClass">{{ card.value }}</strong>
+            <p class="summary-trend" [class]="card.trendClass">{{ card.trend }}</p>
+          </article>
+        }
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel-card portfolio-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Portfolios</p>
+              <h2>Vista general</h2>
+            </div>
+            <button class="panel-link" type="button" (click)="openNewPortfolio()">+ Nuevo</button>
+          </div>
+
+          <div class="portfolio-table">
+            @if (portfoliosLoading) {
+              <div class="portfolio-empty-state">
+                <strong>Cargando portfolios...</strong>
+                <p>Estamos recuperando tu espacio de trabajo.</p>
+              </div>
+            } @else if (portfoliosError) {
+              <div class="portfolio-empty-state portfolio-empty-state-error">
+                <strong>No disponible</strong>
+                <p>{{ portfoliosError }}</p>
+              </div>
+            } @else if (!hasPortfolios) {
+              <div class="portfolio-empty-state">
+                <strong>Aún no tienes portfolios</strong>
+                <p>Crea tu primer portfolio para empezar a registrar movimientos.</p>
+                <button class="empty-state-button" type="button" (click)="openNewPortfolio()">Crear portfolio</button>
+              </div>
+            } @else {
+              @for (portfolio of portfolioRows; track portfolio.id) {
+                <div class="portfolio-row">
+                  <div>
+                    <strong>{{ portfolio.name }}</strong>
+                    <p>{{ portfolio.description || 'Sin descripción todavía.' }}</p>
+                  </div>
+                  <div class="portfolio-meta">
+                    <span>#{{ portfolio.id }}</span>
+                    <p>Creado {{ formatPortfolioDate(portfolio.createdAt) }}</p>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </article>
+
+        <article class="panel-card activity-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Actividad reciente</p>
+              <h2>Últimos movimientos</h2>
+            </div>
+          </div>
+
+          <ul class="activity-list">
+            @if (portfoliosLoading) {
+              <li>Cargando operaciones recientes...</li>
+            } @else if (portfoliosError) {
+              <li>No se pudo cargar la actividad reciente.</li>
+            } @else if (!hasRecentOperations) {
+              <li>Todavía no hay operaciones registradas.</li>
+            } @else {
+              @for (operation of recentOperations; track operation.id) {
+                <li>
+                  <strong>{{ formatOperation(operation) }}</strong><br />
+                  <span>{{ formatCurrency(operation.pricePerUnit, 'USD') }} · {{ formatOperationDate(operation.timestamp) }}</span>
+                </li>
+              }
+            }
+          </ul>
+        </article>
+      </section>
+    </section>
+  </div>
+</main>

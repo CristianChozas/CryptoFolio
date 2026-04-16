@@ -3,6 +3,7 @@ package com.cryptofolio.backend.config;
 import com.cryptofolio.backend.application.mapper.PortfolioMapper;
 import com.cryptofolio.backend.application.port.in.CreatePortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.DeletePortfolioInputPort;
+import com.cryptofolio.backend.application.port.in.GetPortfolioOverviewInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioInputPort;
 import com.cryptofolio.backend.application.port.in.GetPortfolioSummaryInputPort;
 import com.cryptofolio.backend.application.port.in.ListUserPortfoliosInputPort;
@@ -13,6 +14,7 @@ import com.cryptofolio.backend.application.port.out.TransactionRepository;
 import com.cryptofolio.backend.application.port.out.UserRepository;
 import com.cryptofolio.backend.application.usecase.portfolio.CreatePortfolioUseCase;
 import com.cryptofolio.backend.application.usecase.portfolio.DeletePortfolioUseCase;
+import com.cryptofolio.backend.application.usecase.portfolio.GetPortfolioOverviewUseCase;
 import com.cryptofolio.backend.application.usecase.portfolio.GetPortfolioSummaryUseCase;
 import com.cryptofolio.backend.application.usecase.portfolio.GetPortfolioUseCase;
 import com.cryptofolio.backend.application.usecase.portfolio.ListUserPortfoliosUseCase;
@@ -80,6 +82,21 @@ public class PortfolioConfig {
             PortfolioCalculator portfolioCalculator,
             PortfolioMapper portfolioMapper) {
         return new GetPortfolioSummaryUseCase(
+                portfolioRepository,
+                transactionRepository,
+                cryptoPriceProvider,
+                portfolioCalculator,
+                portfolioMapper);
+    }
+
+    @Bean
+    public GetPortfolioOverviewInputPort getPortfolioOverviewInputPort(
+            PortfolioRepository portfolioRepository,
+            TransactionRepository transactionRepository,
+            CryptoPriceProvider cryptoPriceProvider,
+            PortfolioCalculator portfolioCalculator,
+            PortfolioMapper portfolioMapper) {
+        return new GetPortfolioOverviewUseCase(
                 portfolioRepository,
                 transactionRepository,
                 cryptoPriceProvider,
